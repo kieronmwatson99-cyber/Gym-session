@@ -1,7 +1,7 @@
 // Sessions — service worker
 // Cache-first strategy for the main HTML page and its static assets (Google Fonts, CDN libs).
 // Version bump invalidates old caches and forces a refresh on next open.
-const CACHE_NAME = 'sessions-v117';
+const CACHE_NAME = 'sessions-v121';
 
 self.addEventListener('install', event => {
   // Activate the new SW as soon as it's installed — don't wait for all tabs to close

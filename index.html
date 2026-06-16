@@ -4050,6 +4050,12 @@ body.ss-select-mode .exercise-actions{pointer-events:none;opacity:0.35}
   padding: 20px; text-align: center; color: var(--ink-3);
   font-size: 12px; border: 1px dashed var(--line-2); border-radius: 12px;
 }
+.body-tracking-off{padding:32px 20px;text-align:center;border:1px dashed var(--line-2);border-radius:14px;margin-top:14px}
+.body-dist-unit-row{display:flex;align-items:center;justify-content:space-between;gap:12px;background:var(--glass);border:1px solid var(--line-2);border-radius:12px;padding:12px 14px;margin-top:14px}
+.body-dist-unit-label{font-family:"JetBrains Mono",monospace;font-size:11px;letter-spacing:0.06em;text-transform:uppercase;color:var(--ink-3);font-weight:600}
+.body-tracking-off-title{font-family:"Fraunces",Georgia,serif;font-style:italic;font-size:18px;color:var(--ink);margin-bottom:8px}
+.body-tracking-off-sub{font-size:12.5px;color:var(--ink-3);line-height:1.55;max-width:340px;margin:0 auto}
+.body-tracking-off-sub b{color:var(--ink-2);font-weight:600}
 /* Trend observations (v1.23.79) */
 .body-obs{display:flex;flex-direction:column;gap:8px;margin-bottom:22px}
 .obs-line{display:flex;align-items:flex-start;gap:9px;padding:11px 13px;border-radius:10px;font-size:12.5px;line-height:1.5;color:var(--ink-2)}
@@ -4280,6 +4286,29 @@ body.ss-select-mode .exercise-actions{pointer-events:none;opacity:0.35}
 .set-input-wrap{position:relative}
 .set-input{width:100%;padding:11px 36px 11px 12px;background:var(--bg-2);border:1px solid var(--line-2);border-radius:8px;font-family:"JetBrains Mono",monospace;font-size:16px;font-weight:500;color:var(--ink);transition:all 0.15s;min-height:44px}
 .set-input-suggested{border-color:rgba(55,211,153,0.30);background:rgba(55,211,153,0.04)}
+/* Ship A utilities (v1.23.86) */
+.x-btn.has-note{color:var(--amber)}
+.exercise-note{display:flex;align-items:flex-start;gap:7px;padding:8px 11px;background:var(--amber-dim);border-left:2px solid var(--amber);border-radius:7px;margin-bottom:12px;font-size:12px;color:var(--ink-2);line-height:1.45}
+.exercise-note svg{color:var(--amber);flex-shrink:0;margin-top:2px}
+.plate-result,.warmup-result{margin:14px 0;min-height:40px}
+.plate-perside-label,.plate-bar-label{font-family:"JetBrains Mono",monospace;font-size:9px;letter-spacing:0.14em;text-transform:uppercase;color:var(--ink-3);font-weight:600;margin-bottom:8px}
+.plate-chips{display:flex;flex-wrap:wrap;gap:8px}
+.plate-chip{display:flex;flex-direction:column;align-items:center;justify-content:center;min-width:54px;padding:10px 12px;background:var(--glass);border:1px solid var(--line-2);border-radius:10px}
+.plate-chip-w{font-family:"JetBrains Mono",monospace;font-size:18px;font-weight:600;color:var(--ink)}
+.plate-chip-x{font-family:"JetBrains Mono",monospace;font-size:10px;color:var(--ink-3);margin-top:2px}
+.plate-msg{font-size:12px;color:var(--ink-2);line-height:1.5;padding:6px 0}
+.plate-bar-row{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:14px;padding-top:14px;border-top:1px solid var(--line-2)}
+.plate-bar-opts{display:flex;gap:5px}
+.plate-bar-opt{padding:6px 12px;background:var(--glass);border:1px solid var(--line-2);border-radius:999px;color:var(--ink-3);font-family:"JetBrains Mono",monospace;font-size:11px;font-weight:600;cursor:pointer;transition:all 0.15s}
+.plate-bar-opt.on{background:var(--bg-2);color:var(--ink);border-color:var(--line-3)}
+.warmup-ramp{display:flex;flex-direction:column;gap:6px}
+.warmup-step{display:flex;align-items:center;gap:10px;padding:9px 12px;background:var(--glass);border:1px solid var(--line-2);border-radius:9px}
+.warmup-step-n{width:20px;height:20px;border-radius:50%;background:var(--bg-2);color:var(--ink-3);font-family:"JetBrains Mono",monospace;font-size:10px;font-weight:600;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.warmup-step-w{font-family:"JetBrains Mono",monospace;font-size:16px;font-weight:600;color:var(--ink)}
+.warmup-step-unit{font-size:10px;color:var(--ink-3);margin-left:1px}
+.warmup-step-x{font-family:"JetBrains Mono",monospace;font-size:13px;color:var(--ink-2)}
+.warmup-step-pct{margin-left:auto;font-family:"JetBrains Mono",monospace;font-size:10px;color:var(--ink-3);letter-spacing:0.04em}
+.warmup-then{margin-top:10px;font-size:12.5px;color:var(--ink-2);text-align:center}
 .set-input-suggested::placeholder{color:var(--emerald);opacity:0.65}
 .set-input:focus{border-color:var(--emerald);background:var(--bg);box-shadow:0 0 0 3px var(--emerald-dim)}
 .set-unit{position:absolute;right:10px;top:50%;transform:translateY(-50%);font-size:10px;color:var(--ink-3);letter-spacing:0.08em;text-transform:uppercase;font-weight:600;pointer-events:none}
@@ -5736,7 +5765,7 @@ body.ss-select-mode .exercise-actions{pointer-events:none;opacity:0.35}
   <span class="app-version-dot"></span>
   <span>Sessions</span>
   <span class="app-version-sep">&middot;</span>
-  <span class="app-version-num">v1.23.83</span>
+  <span class="app-version-num">v1.23.87</span>
   <span class="app-version-sep">&middot;</span>
   <a href="https://ko-fi.com/kmdev" target="_blank" rel="noopener" class="app-version-link">ko-fi.com/kmdev</a>
 </footer>
@@ -7384,7 +7413,7 @@ const STORE = 'wt_data_v1';
 const THEME = 'wt_theme';
 const LAST_TAB = 'wt_last_tab';
 // App version — shown in the footer + reported in bug emails. Bump per release.
-const APP_VERSION = 'v1.23.83';
+const APP_VERSION = 'v1.23.87';
 
 // --- State ---
 let state = loadState();
@@ -7702,6 +7731,7 @@ function exportData() {
     draftSession: state.draftSession || null,
     body: state.body || { entries:[], goal:{}, unit:'kg' },
     exerciseCeilings: state.exerciseCeilings || {},
+    exerciseNotes: state.exerciseNotes || {},
     active: state.active || null
   };
 }
@@ -7781,6 +7811,12 @@ function importData(raw, opts) {
         if (state.exerciseCeilings[k] == null) state.exerciseCeilings[k] = src.exerciseCeilings[k];
       });
     }
+    if (src.exerciseNotes && typeof src.exerciseNotes === 'object') {
+      if (!state.exerciseNotes) state.exerciseNotes = {};
+      Object.keys(src.exerciseNotes).forEach(k => {
+        if (!state.exerciseNotes[k]) state.exerciseNotes[k] = src.exerciseNotes[k];
+      });
+    }
   } else {
     // Replace
     state.sessions = incomingSessions;
@@ -7791,6 +7827,7 @@ function importData(raw, opts) {
     if (incomingProfile) state.profile = migrateProfile(Object.assign(defaultProfile(), incomingProfile));
     if (incomingBody) state.body = incomingBody;
     if (src.exerciseCeilings && typeof src.exerciseCeilings === 'object') state.exerciseCeilings = src.exerciseCeilings;
+    if (src.exerciseNotes && typeof src.exerciseNotes === 'object') state.exerciseNotes = src.exerciseNotes;
     // Restore active session only if import explicitly includes one
     if (src.active && typeof src.active === 'object' && Array.isArray(src.active.exercises)) {
       state.active = src.active;
@@ -8983,10 +9020,15 @@ function renderExercises() {
           : '';
       })()+
       (showSwap ? '<button class="x-btn swap" data-action="alts" title="Swap exercise" aria-label="Swap"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg></button>' : '')+
+      // Lift-only utilities: plate calculator, warmup ramp, personal note (v1.23.86)
+      ((!cardio && !condMode && !isSport(e)) ? '<button class="x-btn" data-action="plate-calc" title="Plate calculator" aria-label="Plate calculator"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3"/></svg></button>'+
+        '<button class="x-btn" data-action="warmup-gen" title="Warmup ramp" aria-label="Warmup ramp"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 18h4l3-12 4 18 3-9h4"/></svg></button>'+
+        '<button class="x-btn'+(getExerciseNote(e.name)?' has-note':'')+'" data-action="ex-note" title="Note" aria-label="Note"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.12 2.12 0 0 1 3 3L12 15l-4 1 1-4z"/></svg></button>' : '')+
       '<button class="x-btn" data-action="remove-ex" aria-label="Remove"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6L6 18M6 6l12 12"/></svg></button></div></div>'+
       (isDone ? '<div class="exercise-summary">'+doneSummary+'</div>' : '')+
       '<div class="exercise-body">'+
       (cardio ? renderCardioHint(e) : renderProgHint(e))+
+      ((!cardio && getExerciseNote(e.name)) ? '<div class="exercise-note"><svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18.5 2.5a2.12 2.12 0 0 1 3 3L12 15l-4 1 1-4z"/></svg><span>'+escapeHtml(getExerciseNote(e.name))+'</span></div>' : '')+
       (cardio ? '' : renderLoggingHint(e))+
       (cardio ? '' : render1RM(e))+
       '<div class="sets-list">'+
@@ -9673,6 +9715,25 @@ function renderExercises() {
     el.querySelectorAll('[data-action="set-maxload"]').forEach(b => {
       b.onclick = () => openMaxLoadPrompt(exObj.name);
     });
+    // Ship A utilities (v1.23.86): plate calc, warmup ramp, note
+    el.querySelectorAll('[data-action="plate-calc"]').forEach(b => {
+      b.onclick = () => {
+        // Prefill with a sensible target: last/suggested working weight if we have one
+        let preset = null;
+        try { const ph = getProgressionHint(exObj.name, exObj.target); if (ph && ph.suggestWeight > 0) preset = ph.suggestWeight; } catch(_){}
+        openPlateCalc(preset);
+      };
+    });
+    el.querySelectorAll('[data-action="warmup-gen"]').forEach(b => {
+      b.onclick = () => {
+        let preset = null;
+        try { const ph = getProgressionHint(exObj.name, exObj.target); if (ph && ph.suggestWeight > 0) preset = ph.suggestWeight; } catch(_){}
+        openWarmupGen(exObj.name, preset);
+      };
+    });
+    el.querySelectorAll('[data-action="ex-note"]').forEach(b => {
+      b.onclick = () => openExerciseNote(exObj.name);
+    });
     // H2H tracker quick-access button (squash exercises only)
     el.querySelectorAll('[data-action="open-h2h-tracker"]').forEach(b => {
       b.onclick = () => openAllOpponents();
@@ -9966,6 +10027,19 @@ function setExerciseCeiling(name, weight) {
   }
   save();
 }
+// Exercise notes / cues (v1.23.86, Ship A) — personal per-exercise reminders shown on the card.
+function getExerciseNote(name) {
+  if (!name || !state.exerciseNotes) return '';
+  return state.exerciseNotes[name.toLowerCase()] || '';
+}
+function setExerciseNote(name, text) {
+  if (!name) return;
+  if (!state.exerciseNotes) state.exerciseNotes = {};
+  const t = (text || '').trim();
+  if (!t) delete state.exerciseNotes[name.toLowerCase()];
+  else state.exerciseNotes[name.toLowerCase()] = t;
+  save();
+}
 function parseRepsRange(reps) {
   const s = String(reps || '');
   const m = s.match(/(\d+)(?:\s*-\s*(\d+))?/);
@@ -10121,6 +10195,176 @@ function openMaxLoadPrompt(exName) {
     closeTemplateModal();
     renderExercises();
     toast('Max load cleared.');
+  };
+  document.getElementById('tmpl-modal').classList.remove('hidden');
+}
+// ===== Plate calculator (v1.23.86, Ship A) =====
+// Standard kg plate denominations (per side). Bar defaults to 20kg, adjustable + remembered.
+const PLATE_DENOMS = [25, 20, 15, 10, 5, 2.5, 1.25];
+function getBarWeight() { return (state.profile && state.profile.barWeight != null) ? state.profile.barWeight : 20; }
+function computePlates(target, bar) {
+  // Returns { perSide:[{plate,count}], leftover, achievable } — what to load each side.
+  const perSideWeight = (target - bar) / 2;
+  if (perSideWeight < 0) return { perSide: [], leftover: target - bar, achievable: false, perSideWeight };
+  let remaining = perSideWeight;
+  const perSide = [];
+  PLATE_DENOMS.forEach(p => {
+    const count = Math.floor(remaining / p + 1e-9);
+    if (count > 0) { perSide.push({ plate: p, count }); remaining -= count * p; }
+  });
+  return { perSide, leftover: remaining, achievable: true, perSideWeight };
+}
+let _plateLastTarget = null;
+function openPlateCalc(presetTarget) {
+  const body = document.getElementById('tmpl-body');
+  if (!body) return;
+  const render = (target) => {
+    const bar = getBarWeight();
+    const res = computePlates(target, bar);
+    let breakdown = '';
+    if (target < bar) {
+      breakdown = '<div class="plate-msg">Target is below the bar weight ('+fmtNum(bar)+'kg). Lower the bar setting or pick a heavier target.</div>';
+    } else if (!res.perSide.length) {
+      breakdown = '<div class="plate-msg">Just the bar &mdash; '+fmtNum(bar)+'kg, no plates.</div>';
+    } else {
+      const chips = res.perSide.map(p => '<div class="plate-chip"><span class="plate-chip-w">'+fmtNum(p.plate)+'</span><span class="plate-chip-x">× '+p.count+'</span></div>').join('');
+      breakdown = '<div class="plate-perside-label">Per side</div><div class="plate-chips">'+chips+'</div>';
+      if (res.leftover > 0.01) breakdown += '<div class="plate-msg" style="color:var(--amber)">Closest loadable is '+fmtNum(bar + 2*(res.perSideWeight - res.leftover))+'kg &mdash; '+fmtNum(res.leftover)+'kg/side short of exact with standard plates.</div>';
+    }
+    body.innerHTML = '<h3 class="modal-title">Plate calculator</h3>'+
+      '<div class="modal-sub">Plates to load <b>per side</b> of the bar. Bar weight is adjustable below and remembered.</div>'+
+      '<div class="field"><div class="field-label">Target total (kg)</div>'+
+        '<input type="text" class="field-input" id="plate-target" inputmode="decimal" autocomplete="off" value="'+(target!=null?fmtNum(target):'')+'" placeholder="e.g. 100" /></div>'+
+      '<div class="plate-result">'+breakdown+'</div>'+
+      '<div class="plate-bar-row"><span class="plate-bar-label">Bar weight</span>'+
+        '<span class="plate-bar-opts">'+
+          [15,20,25].map(b => '<button class="plate-bar-opt'+(bar===b?' on':'')+'" data-bar="'+b+'">'+b+'kg</button>').join('')+
+        '</span>'+
+      '</div>'+
+      '<div class="modal-actions" style="justify-content:flex-end"><button class="btn btn-primary" id="plate-done">Done</button></div>';
+    const targetInput = document.getElementById('plate-target');
+    targetInput.oninput = () => {
+      const v = parseFloat(targetInput.value.replace(/[^0-9.]/g,''));
+      _plateLastTarget = isNaN(v) ? null : v;
+      // Re-render only the result block to keep focus in the input
+      const resEl = body.querySelector('.plate-result');
+      if (resEl && !isNaN(v)) {
+        const r2 = computePlates(v, getBarWeight());
+        if (v < getBarWeight()) resEl.innerHTML = '<div class="plate-msg">Target is below the bar weight ('+fmtNum(getBarWeight())+'kg).</div>';
+        else if (!r2.perSide.length) resEl.innerHTML = '<div class="plate-msg">Just the bar &mdash; '+fmtNum(getBarWeight())+'kg, no plates.</div>';
+        else {
+          const chips = r2.perSide.map(p => '<div class="plate-chip"><span class="plate-chip-w">'+fmtNum(p.plate)+'</span><span class="plate-chip-x">× '+p.count+'</span></div>').join('');
+          let html = '<div class="plate-perside-label">Per side</div><div class="plate-chips">'+chips+'</div>';
+          if (r2.leftover > 0.01) html += '<div class="plate-msg" style="color:var(--amber)">'+fmtNum(r2.leftover)+'kg/side short of exact with standard plates.</div>';
+          resEl.innerHTML = html;
+        }
+      } else if (resEl) resEl.innerHTML = '';
+    };
+    body.querySelectorAll('[data-bar]').forEach(btn => {
+      btn.onclick = () => {
+        if (!state.profile) state.profile = {};
+        state.profile.barWeight = +btn.dataset.bar;
+        save();
+        render(_plateLastTarget != null ? _plateLastTarget : target);
+      };
+    });
+    document.getElementById('plate-done').onclick = closeTemplateModal;
+  };
+  _plateLastTarget = presetTarget != null ? presetTarget : _plateLastTarget;
+  render(_plateLastTarget);
+  document.getElementById('tmpl-modal').classList.remove('hidden');
+}
+// ===== Warmup generator (v1.23.86, Ship A) =====
+// Given a working weight, produce a sensible warmup ramp. Empty-bar → 40% → 60% → 80% → work.
+function computeWarmup(workingWeight, bar) {
+  if (!workingWeight || workingWeight <= bar) return [];
+  const steps = [
+    { pct: 0,    reps: 10, label: 'Bar' },
+    { pct: 0.4,  reps: 8,  label: '40%' },
+    { pct: 0.6,  reps: 5,  label: '60%' },
+    { pct: 0.8,  reps: 3,  label: '80%' }
+  ];
+  // Round each to nearest loadable 2.5kg increment, skip any at/under bar except the bar row
+  const seen = new Set();
+  const out = [];
+  steps.forEach(s => {
+    let w = s.pct === 0 ? bar : Math.round((workingWeight * s.pct) / 2.5) * 2.5;
+    if (s.pct !== 0 && w <= bar) return;            // skip percentages that fall at/under the bar
+    if (w >= workingWeight) return;                  // never warm up at or above the work weight
+    if (seen.has(w)) return;
+    seen.add(w);
+    out.push({ weight: w, reps: s.reps, label: s.label });
+  });
+  return out;
+}
+function openWarmupGen(exName, workingWeight) {
+  const body = document.getElementById('tmpl-body');
+  if (!body) return;
+  const bar = getBarWeight();
+  const render = (work) => {
+    const ramp = computeWarmup(work, bar);
+    let rampHtml;
+    if (!work || work <= bar) {
+      rampHtml = '<div class="plate-msg">Enter a working weight above the bar ('+fmtNum(bar)+'kg) to see a warmup ramp.</div>';
+    } else if (!ramp.length) {
+      rampHtml = '<div class="plate-msg">Working weight is light &mdash; a set or two with the bar is plenty.</div>';
+    } else {
+      rampHtml = '<div class="warmup-ramp">'+ramp.map((s,i) =>
+        '<div class="warmup-step"><span class="warmup-step-n">'+(i+1)+'</span>'+
+        '<span class="warmup-step-w">'+fmtNum(s.weight)+'<span class="warmup-step-unit">kg</span></span>'+
+        '<span class="warmup-step-x">× '+s.reps+'</span>'+
+        '<span class="warmup-step-pct">'+s.label+'</span></div>'
+      ).join('')+'</div>'+
+      '<div class="warmup-then">then <b>'+fmtNum(work)+'kg</b> working sets</div>';
+    }
+    body.innerHTML = '<h3 class="modal-title">Warmup ramp</h3>'+
+      '<div class="modal-sub">A sensible ramp up to your working weight'+(exName?' for <b>'+escapeHtml(exName)+'</b>':'')+'. General guidance &mdash; adjust to how you feel.</div>'+
+      '<div class="field"><div class="field-label">Working weight (kg)</div>'+
+        '<input type="text" class="field-input" id="warmup-work" inputmode="decimal" autocomplete="off" value="'+(work!=null?fmtNum(work):'')+'" placeholder="e.g. 100" /></div>'+
+      '<div class="warmup-result">'+rampHtml+'</div>'+
+      '<div class="modal-actions" style="justify-content:flex-end"><button class="btn btn-primary" id="warmup-done">Done</button></div>';
+    const workInput = document.getElementById('warmup-work');
+    workInput.oninput = () => {
+      const v = parseFloat(workInput.value.replace(/[^0-9.]/g,''));
+      const resEl = body.querySelector('.warmup-result');
+      if (!resEl) return;
+      if (isNaN(v) || v <= bar) { resEl.innerHTML = '<div class="plate-msg">Enter a working weight above the bar ('+fmtNum(bar)+'kg).</div>'; return; }
+      const r = computeWarmup(v, bar);
+      if (!r.length) { resEl.innerHTML = '<div class="plate-msg">Working weight is light &mdash; a set with the bar is plenty.</div>'; return; }
+      resEl.innerHTML = '<div class="warmup-ramp">'+r.map((s,i) =>
+        '<div class="warmup-step"><span class="warmup-step-n">'+(i+1)+'</span><span class="warmup-step-w">'+fmtNum(s.weight)+'<span class="warmup-step-unit">kg</span></span><span class="warmup-step-x">× '+s.reps+'</span><span class="warmup-step-pct">'+s.label+'</span></div>'
+      ).join('')+'</div><div class="warmup-then">then <b>'+fmtNum(v)+'kg</b> working sets</div>';
+    };
+    document.getElementById('warmup-done').onclick = closeTemplateModal;
+  };
+  render(workingWeight);
+  document.getElementById('tmpl-modal').classList.remove('hidden');
+}
+// Exercise note editor (v1.23.86, Ship A)
+function openExerciseNote(exName) {
+  const body = document.getElementById('tmpl-body');
+  if (!body) return;
+  const current = getExerciseNote(exName);
+  body.innerHTML = '<h3 class="modal-title">Note &middot; '+escapeHtml(exName)+'</h3>'+
+    '<div class="modal-sub">A personal cue or reminder for this exercise &mdash; form notes, setup, a weight to remember. Shows on the card every time.</div>'+
+    '<div class="field"><textarea class="field-input" id="ex-note-input" rows="3" autocomplete="off" placeholder="e.g. Elbows tucked, pause at the bottom. Seat on pin 4." style="resize:vertical;min-height:72px;font-family:inherit">'+escapeHtml(current)+'</textarea></div>'+
+    '<div class="modal-actions" style="justify-content:space-between">'+
+      '<button class="btn btn-ghost" id="ex-note-clear" style="color:var(--rose)"'+(current?'':' disabled')+'>Clear</button>'+
+      '<div style="display:flex;gap:8px"><button class="btn btn-ghost" id="ex-note-cancel">Cancel</button>'+
+      '<button class="btn btn-primary" id="ex-note-save">Save</button></div>'+
+    '</div>';
+  document.getElementById('ex-note-cancel').onclick = closeTemplateModal;
+  document.getElementById('ex-note-save').onclick = () => {
+    setExerciseNote(exName, document.getElementById('ex-note-input').value);
+    closeTemplateModal();
+    renderExercises();
+    toast('Note saved.');
+  };
+  document.getElementById('ex-note-clear').onclick = () => {
+    setExerciseNote(exName, '');
+    closeTemplateModal();
+    renderExercises();
+    toast('Note cleared.');
   };
   document.getElementById('tmpl-modal').classList.remove('hidden');
 }
@@ -10934,12 +11178,37 @@ function openFinishModal() {
   const totalReps = (s.exercises||[]).filter(e => !isCardio(e)).reduce((a,e) => a + (e.sets||[]).reduce((b,st) => b + (+st.reps||0), 0), 0);
   const density = durationMin >= 1 && vol > 0 ? (vol / durationMin) : 0;
   const muscles = sessionMuscles(s);
-  // Find PRs set this session
-  const prs = (s.exercises||[]).filter(e => !isCardio(e)).map(e => {
-    const myMax = Math.max(0, ...(e.sets||[]).filter(st => !st.warmup).map(st => +st.weight || 0));
-    if (myMax <= 0) return null;
-    const priorMax = state.sessions.flatMap(x => (x.exercises||[]).filter(y => y.name.toLowerCase() === e.name.toLowerCase())).flatMap(y => (y.sets||[]).filter(st => !st.warmup).map(st => +st.weight || 0)).reduce((a,b) => Math.max(a,b), 0);
-    return myMax > priorMax ? { name:e.name, weight:myMax, muscle:e.muscle } : null;
+  // Find PRs set this session (v1.23.87: weight, reps, and estimated-1RM PRs — not just weight).
+  // This means progress on a maxed-out exercise (more reps at the same weight) still counts.
+  const prs = (s.exercises||[]).filter(e => !isCardio(e) && !isSport(e) && !exerciseMode(e)).map(e => {
+    const myWork = (e.sets||[]).filter(st => !st.warmup && +st.weight > 0 && +st.reps > 0);
+    if (!myWork.length) return null;
+    const lname = e.name.toLowerCase();
+    // All prior working sets for this exercise (across history)
+    const priorSets = state.sessions
+      .flatMap(x => (x.exercises||[]).filter(y => y.name.toLowerCase() === lname))
+      .flatMap(y => (y.sets||[]).filter(st => !st.warmup && +st.weight > 0 && +st.reps > 0));
+    const myMaxW = Math.max(...myWork.map(st => +st.weight));
+    const priorMaxW = priorSets.length ? Math.max(...priorSets.map(st => +st.weight)) : 0;
+    // e1RM (Epley) for this session vs prior best
+    const e1 = st => (+st.weight) * (1 + (+st.reps)/30);
+    const myMaxE1 = Math.max(...myWork.map(e1));
+    const priorMaxE1 = priorSets.length ? Math.max(...priorSets.map(e1)) : 0;
+    // Rep PR: most reps at the heaviest weight reached this session, vs prior reps at >= that weight
+    const myTopWeightReps = Math.max(...myWork.filter(st => +st.weight === myMaxW).map(st => +st.reps));
+    const priorRepsAtWeight = priorSets.filter(st => +st.weight >= myMaxW).map(st => +st.reps);
+    const priorMaxRepsAtWeight = priorRepsAtWeight.length ? Math.max(...priorRepsAtWeight) : 0;
+
+    if (!priorSets.length) return null; // first time doing it isn't a "PR" — it's a baseline
+    let type = null, detail = '';
+    if (myMaxW > priorMaxW) {
+      type = 'weight'; detail = fmtNum(myMaxW) + ' kg × ' + myTopWeightReps;
+    } else if (myMaxW === priorMaxW && myTopWeightReps > priorMaxRepsAtWeight) {
+      type = 'reps'; detail = fmtNum(myMaxW) + ' kg × ' + myTopWeightReps;
+    } else if (myMaxE1 > priorMaxE1 * 1.001) {
+      type = 'e1rm'; detail = fmtNum(myMaxW) + ' kg × ' + myTopWeightReps;
+    }
+    return type ? { name:e.name, muscle:e.muscle, type, detail, weight:myMaxW, reps:myTopWeightReps } : null;
   }).filter(Boolean);
 
   // Previously saved values (in case user is re-opening)
@@ -10985,7 +11254,11 @@ function openFinishModal() {
 
   // PR list
   const prHtml = prs.length
-    ? '<div class="pr-list">'+prs.map(p => { const m = muscleById(p.muscle); return '<div class="pr-list-row" style="--m-color:'+m.color+'"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 15 12 9 18 15"/></svg>New PR &middot; '+escapeHtml(p.name)+' <b style="margin-left:auto;">'+fmtNum(p.weight)+' kg</b></div>'; }).join('')+'</div>'
+    ? '<div class="pr-list">'+prs.map(p => {
+        const m = muscleById(p.muscle);
+        const typeLabel = p.type === 'weight' ? 'Weight PR' : p.type === 'reps' ? 'Rep PR' : 'Strength PR';
+        return '<div class="pr-list-row" style="--m-color:'+m.color+'"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 15 12 9 18 15"/></svg>'+typeLabel+' &middot; '+escapeHtml(p.name)+' <b style="margin-left:auto;">'+p.detail+'</b></div>';
+      }).join('')+'</div>'
     : '';
 
   // Coverage check — flag sub-muscles that were likely missed in focus areas. Wrapped in try/catch
@@ -12284,6 +12557,47 @@ function renderHistory() {
 // Order: newest first. APP_VERSION constant is the source of truth for "current" — I check
 // against it in renderChangelog so I don't need to maintain a separate "current" flag.
 const CHANGELOG = [
+  {
+    version: 'v1.23.87',
+    date: 'May 2026',
+    headline: 'PR detection now catches rep and strength PRs, not just heavier weight',
+    items: [
+      { tag:'new', text:'<b>Rep PRs and strength PRs are now detected at finish</b>, alongside the existing weight PRs. Hit the same weight for more reps? That\'s a Rep PR. Improved your estimated 1RM (e.g. 100kg×5 beating an old 110kg×1)? That\'s a Strength PR. Each is labelled in the finish summary.' },
+      { tag:'note', text:'<b>This matters most for maxed-out exercises.</b> If you\'ve hit your max-load ceiling and can\'t add weight, adding a rep at that weight now correctly registers as a Rep PR &mdash; progress that the old weight-only detection missed entirely.' },
+      { tag:'note', text:'<b>First-time exercises don\'t count as PRs</b> &mdash; they set your baseline. A PR needs prior history to beat. Warmup sets are excluded from PR detection throughout.' }
+    ]
+  },
+  {
+    version: 'v1.23.86',
+    date: 'May 2026',
+    headline: 'Active-session tools: plate calculator, warmup ramp, exercise notes',
+    items: [
+      { tag:'new', text:'<b>Plate calculator.</b> Tap the disc icon on any lift to see what plates to load per side for a target weight. Bar weight is adjustable (15/20/25kg) and remembered. Prefills with your suggested working weight, and flags when an exact load isn\'t possible with standard plates.' },
+      { tag:'new', text:'<b>Warmup ramp.</b> Tap the ramp icon to get a sensible warmup progression up to your working weight &mdash; bar, then 40/60/80% rounded to loadable increments. Prefills with the suggested weight; adjust to taste.' },
+      { tag:'new', text:'<b>Exercise notes.</b> Tap the pencil icon to save a personal cue per exercise &mdash; form reminders, machine settings, anything. It shows on the card every session. The icon turns amber when a note exists.' },
+      { tag:'note', text:'<b>All three are lift-only</b> (they don\'t appear on cardio, sport, or conditioning). Notes and the bar-weight preference are included in your backup export.' }
+    ]
+  },
+  {
+    version: 'v1.23.85',
+    date: 'May 2026',
+    headline: 'Bug fixes for the new Body tracking toggles',
+    items: [
+      { tag:'fixed', text:'<b>Distance unit (km/mi) is no longer trapped.</b> It used to live only inside the weight log card, so turning off weight tracking left cardio users with no way to switch km/mi outside an active session. When weight is off but steps or food are on, a standalone distance-unit toggle now appears.' },
+      { tag:'fixed', text:'<b>No more contradictory empty state.</b> With all Body tracking off, the food "turn me on" card no longer shows alongside the "All Body tracking is off" message. The food card is suppressed when nothing is tracked, so the empty state stands alone.' }
+    ]
+  },
+  {
+    version: 'v1.23.84',
+    date: 'May 2026',
+    headline: 'Body tracking toggles &mdash; turn off weight, steps, or food independently',
+    items: [
+      { tag:'new', text:'<b>Three new toggles in Settings &rarr; Body tracking.</b> Independently turn off Weight, Daily steps, or Food &amp; macros. Each hides the relevant card on the Body tab, summary cards, charts, observations, and Body Review sections.' },
+      { tag:'note', text:'<b>Logged data is preserved.</b> Disabling a feature only hides the UI &mdash; your entries stay in storage. Re-enable later and everything\'s back exactly as it was.' },
+      { tag:'note', text:'<b>The Body tab stays accessible</b> even with everything off &mdash; you\'ll see a calm "All Body tracking is off" note pointing to Settings to turn things back on. The Body Review button hides when nothing\'s being tracked (an empty report wouldn\'t mean anything).' },
+      { tag:'note', text:'<b>Defaults are unchanged.</b> Existing users keep their current setup: weight and steps on, food whatever you had it as. Nothing flips without you asking.' }
+    ]
+  },
   {
     version: 'v1.23.83',
     date: 'May 2026',
@@ -20737,6 +21051,28 @@ function renderSettings() {
       '</div>'+
     '</div>'+
     '<div class="settings-section">'+
+      '<div class="settings-title">Body tracking</div>'+
+      '<div class="settings-desc">Choose what to track on the Body tab. Turning a feature off hides it everywhere but <b>preserves your logged history</b> &mdash; turn it back on later and it\'s all still there.</div>'+
+      '<div class="settings-desc" style="margin-top:10px;font-weight:600;color:var(--ink-2)">Weight &amp; body fat</div>'+
+      '<div class="settings-desc" style="font-size:11px;margin-bottom:6px">Log card, charts, goals, weigh-in nudge, and the Body Review weight sections.</div>'+
+      '<div class="opt-grid-2">'+
+        '<button class="opt-btn '+(isWeightTrackingOn() ? 'selected':'')+'" data-body-track="weight" data-val="true">On</button>'+
+        '<button class="opt-btn '+(!isWeightTrackingOn() ? 'selected':'')+'" data-body-track="weight" data-val="false">Off</button>'+
+      '</div>'+
+      '<div class="settings-desc" style="margin-top:14px;font-weight:600;color:var(--ink-2)">Daily steps</div>'+
+      '<div class="settings-desc" style="font-size:11px;margin-bottom:6px">Step log card, steps summary card, and step observations.</div>'+
+      '<div class="opt-grid-2">'+
+        '<button class="opt-btn '+(isStepsTrackingOn() ? 'selected':'')+'" data-body-track="steps" data-val="true">On</button>'+
+        '<button class="opt-btn '+(!isStepsTrackingOn() ? 'selected':'')+'" data-body-track="steps" data-val="false">Off</button>'+
+      '</div>'+
+      '<div class="settings-desc" style="margin-top:14px;font-weight:600;color:var(--ink-2)">Food &amp; macros</div>'+
+      '<div class="settings-desc" style="font-size:11px;margin-bottom:6px">Food card, saved foods, macro summary cards, and Intake section of the Body Review.</div>'+
+      '<div class="opt-grid-2">'+
+        '<button class="opt-btn '+(isFoodTrackingOn() ? 'selected':'')+'" data-body-track="food" data-val="true">On</button>'+
+        '<button class="opt-btn '+(!isFoodTrackingOn() ? 'selected':'')+'" data-body-track="food" data-val="false">Off</button>'+
+      '</div>'+
+    '</div>'+
+    '<div class="settings-section">'+
       '<div class="settings-title">Smart assistance</div>'+
       '<div class="settings-desc">Two optional helpers, both grounded in your own logged data &mdash; never hardcoded targets.</div>'+
       '<div class="settings-desc" style="margin-top:10px;font-weight:600;color:var(--ink-2)">Suggested working weight</div>'+
@@ -21127,6 +21463,28 @@ function renderSettings() {
         else stopSilentKeepalive();
       }
       toast(wantOn ? 'Background timer reliability on.' : 'Background keepalive off.');
+    };
+  });
+  // Body tracking toggles (v1.23.84) — preserves logged data, only hides UI
+  body.querySelectorAll('[data-body-track]').forEach(btn => {
+    btn.onclick = () => {
+      const which = btn.getAttribute('data-body-track');
+      const wantOn = btn.getAttribute('data-val') === 'true';
+      if (!state.body) state.body = { entries:[], goal:{}, unit:'kg' };
+      if (which === 'weight') state.body.weightEnabled = wantOn;
+      else if (which === 'steps') state.body.stepsEnabled = wantOn;
+      else if (which === 'food') {
+        if (!state.body.food) state.body.food = defaultFood();
+        state.body.food.enabled = wantOn;
+      }
+      save();
+      // Update the toggle pair's selected state
+      body.querySelectorAll('[data-body-track="'+which+'"]').forEach(b => {
+        b.classList.toggle('selected', b.getAttribute('data-val') === String(wantOn));
+      });
+      toast((wantOn?'Enabled':'Disabled')+' '+(which==='weight'?'weight tracking':which==='steps'?'step tracking':'food tracking')+'.');
+      // Refresh Body tab if visible
+      if (currentTab === 'body') renderBody();
     };
   });
   // Smart assistance toggles (v1.23.79)
@@ -23149,6 +23507,11 @@ function editGeneratedAsDraft() {
 
 // --- Body tracking ---
 function getBodyUnit() { return (state.body && state.body.unit) || 'kg'; }
+// Body tracking toggles (v1.23.84). Default to true when unset so existing users see no change.
+function isWeightTrackingOn() { return !state.body || state.body.weightEnabled !== false; }
+function isStepsTrackingOn()  { return !state.body || state.body.stepsEnabled  !== false; }
+function isFoodTrackingOn()   { return !!(state.body && state.body.food && state.body.food.enabled); }
+function isAnyBodyTrackingOn() { return isWeightTrackingOn() || isStepsTrackingOn() || isFoodTrackingOn(); }
 function convertWeight(kg, toUnit) { return toUnit === 'lb' ? kg * 2.20462 : kg; }
 function parseWeightInput(val, unit) {
   const n = parseFloat(val);
@@ -23310,7 +23673,7 @@ function renderBodySummary() {
     const yEntry = bodyEntries.find(e => e.date === y && e.weight != null);
     return yEntry ? yEntry.weight : null;
   })() : wPrev.avg;
-  cards.push(card({
+  if (isWeightTrackingOn()) cards.push(card({
     label: 'Weight',
     color: '#37d399',
     val: wVal,
@@ -23321,8 +23684,8 @@ function renderBodySummary() {
     unitTxt: unit
   }));
 
-  // Body fat card — only if we have BF data anywhere
-  if (bfCur.count > 0 || bfPrev.count > 0) {
+  // Body fat card — only if we have BF data anywhere AND weight tracking is on
+  if (isWeightTrackingOn() && (bfCur.count > 0 || bfPrev.count > 0)) {
     const bfVal = isDay ? (() => {
       const todayEntry = bodyEntries.find(e => e.date === today && e.bodyFat != null);
       return todayEntry ? todayEntry.bodyFat : (bfCur.latest ? bfCur.latest.bodyFat : null);
@@ -23344,8 +23707,8 @@ function renderBodySummary() {
     }));
   }
 
-  // Steps card — always show (steps tracking is opt-in but visible if any data exists)
-  if (stCur.count > 0 || stPrev.count > 0 || (state.profile && state.profile.activePhase === 'cut')) {
+  // Steps card — gated by steps tracking toggle (v1.23.84)
+  if (isStepsTrackingOn() && (stCur.count > 0 || stPrev.count > 0 || (state.profile && state.profile.activePhase === 'cut'))) {
     const stVal = isDay ? (() => {
       const todayEntry = bodyEntries.find(e => e.date === today && e.steps);
       return todayEntry ? todayEntry.steps : null;
@@ -23433,22 +23796,26 @@ function renderBodyObservations() {
   const avg = arr => arr.length ? arr.reduce((a,b)=>a+b,0)/arr.length : null;
   const obs = [];
 
-  // --- Steps: 7d vs 30d ---
-  const stepsWeek = entries.filter(e => e.date >= wk0 && e.steps > 0).map(e => e.steps);
-  const stepsMonth = entries.filter(e => e.date >= mo0 && e.steps > 0).map(e => e.steps);
-  if (stepsWeek.length >= 3 && stepsMonth.length >= 7) {
-    const w = avg(stepsWeek), m = avg(stepsMonth);
-    const pct = Math.round((w - m) / m * 100);
-    if (pct <= -20) obs.push({ type:'info', icon:'bars', text:'Steps this week are <b>tracking '+Math.abs(pct)+'% below</b> your 30-day average ('+Math.round(w).toLocaleString()+' vs '+Math.round(m).toLocaleString()+'/day).' });
-    else if (pct >= 25) obs.push({ type:'win', icon:'check', text:'Steps this week are <b>'+pct+'% above</b> your 30-day average ('+Math.round(w).toLocaleString()+'/day).' });
+  // --- Steps: 7d vs 30d --- (gated by steps tracking)
+  if (isStepsTrackingOn()) {
+    const stepsWeek = entries.filter(e => e.date >= wk0 && e.steps > 0).map(e => e.steps);
+    const stepsMonth = entries.filter(e => e.date >= mo0 && e.steps > 0).map(e => e.steps);
+    if (stepsWeek.length >= 3 && stepsMonth.length >= 7) {
+      const w = avg(stepsWeek), m = avg(stepsMonth);
+      const pct = Math.round((w - m) / m * 100);
+      if (pct <= -20) obs.push({ type:'info', icon:'bars', text:'Steps this week are <b>tracking '+Math.abs(pct)+'% below</b> your 30-day average ('+Math.round(w).toLocaleString()+' vs '+Math.round(m).toLocaleString()+'/day).' });
+      else if (pct >= 25) obs.push({ type:'win', icon:'check', text:'Steps this week are <b>'+pct+'% above</b> your 30-day average ('+Math.round(w).toLocaleString()+'/day).' });
+    }
   }
 
-  // --- Weight: flat / moving (self-referential, phase-neutral framing) ---
+  // --- Weight: flat / moving --- (gated by weight tracking)
   const wWeek = entries.filter(e => e.date >= wk0 && e.weight != null).map(e => e.weight);
-  const wPrevWeek = entries.filter(e => e.date >= back(13) && e.date < wk0 && e.weight != null).map(e => e.weight);
-  if (wWeek.length >= 2 && wPrevWeek.length >= 2) {
-    const delta = avg(wWeek) - avg(wPrevWeek);
-    if (Math.abs(delta) < 0.2) obs.push({ type:'info', icon:'flat', text:'Weight has been <b>flat</b> week-on-week (within 0.2 '+(getBodyUnit())+').' });
+  if (isWeightTrackingOn()) {
+    const wPrevWeek = entries.filter(e => e.date >= back(13) && e.date < wk0 && e.weight != null).map(e => e.weight);
+    if (wWeek.length >= 2 && wPrevWeek.length >= 2) {
+      const delta = avg(wWeek) - avg(wPrevWeek);
+      if (Math.abs(delta) < 0.2) obs.push({ type:'info', icon:'flat', text:'Weight has been <b>flat</b> week-on-week (within 0.2 '+(getBodyUnit())+').' });
+    }
   }
 
   // --- Protein consistency (positive only — never a deficit-shaming note) ---
@@ -24077,7 +24444,7 @@ function renderBody() {
   const cadence = (state.profile && state.profile.weighInCadenceDays) || 0;
   const activePhase = state.profile && state.profile.activePhase;
   let nudgeBannerHtml = '';
-  if (cadence > 0) {
+  if (isWeightTrackingOn() && cadence > 0) {
     let dismissedToday = false;
     try {
       const d = localStorage.getItem('sessions:nudge:weighin:dismissed');
@@ -24182,7 +24549,7 @@ function renderBody() {
   // Goal strip (v1.23.73) — slim row showing goal targets + progress.
   // Replaces the old 3-card Hero (Current/Goal/Progress) since the period summary
   // already shows the current weight. Skipped entirely if no goals are set.
-  const hasAnyGoal = goalW != null || goalBF != null;
+  const hasAnyGoal = isWeightTrackingOn() && (goalW != null || goalBF != null);
   let goalStripHtml = '';
   if (hasAnyGoal) {
     const goalParts = [];
@@ -24233,16 +24600,16 @@ function renderBody() {
 
   pane.innerHTML =
     nudgeBannerHtml+
-    '<div class="body-actions-row">'+
+    (isAnyBodyTrackingOn() ? '<div class="body-actions-row">'+
       '<button class="btn btn-ghost btn-sm" id="open-body-review-btn" style="border-color:rgba(55,211,153,0.30);color:var(--emerald)" title="Generate a body composition report">'+
         '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right:6px;vertical-align:-2px"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>'+
         'Body review'+
       '</button>'+
-    '</div>'+
+    '</div>' : '')+
     renderBodySummary()+
     renderBodyObservations()+
     goalStripHtml+
-    '<div class="body-log-card">'+
+    (isWeightTrackingOn() ? '<div class="body-log-card">'+
       '<div class="body-log-title" style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;">Log today\'s weight'+
         '<span style="display:flex;gap:8px;align-items:center;">'+
           '<span class="unit-toggle"><button class="'+(unit==='kg'?'on':'')+'" data-unit="kg">kg</button><button class="'+(unit==='lb'?'on':'')+'" data-unit="lb">lb</button></span>'+
@@ -24254,8 +24621,8 @@ function renderBody() {
         '<div class="body-log-input-wrap"><input type="text" class="body-log-input" id="bf-input" placeholder="BF% (optional)" inputmode="decimal" autocomplete="off" spellcheck="false" /><span class="body-log-unit">%</span></div>'+
         '<button class="btn btn-primary" id="log-weight-btn">Log</button>'+
       '</div>'+
-    '</div>'+
-    '<div class="body-log-card" style="margin-top:14px">'+
+    '</div>' : '')+
+    (isStepsTrackingOn() ? '<div class="body-log-card" style="margin-top:14px">'+
       '<div class="body-log-title">Daily steps</div>'+
       '<div class="body-steps-row">'+
         '<input type="date" class="body-log-input body-date-input" id="steps-date-input" value="'+todayISO()+'" max="'+todayISO()+'" />'+
@@ -24263,9 +24630,13 @@ function renderBody() {
         '<button class="btn btn-primary" id="log-steps-btn">Log</button>'+
       '</div>'+
       '<div class="body-goal-hint" style="margin-top:8px">Pick a past date if you forgot to log on the day. Sessions can\'t read Samsung Health, so this is manual entry only.</div>'+
-    '</div>'+
-    renderFoodCard()+
-    '<div class="body-goal-form">'+
+    '</div>' : '')+
+    ((isFoodTrackingOn() || isWeightTrackingOn() || isStepsTrackingOn()) ? renderFoodCard() : '')+
+    (!isWeightTrackingOn() && (isStepsTrackingOn() || isFoodTrackingOn()) ?
+      '<div class="body-dist-unit-row"><span class="body-dist-unit-label">Distance unit</span>'+
+      '<span class="unit-toggle"><button class="'+(getDistanceUnit()==='km'?'on':'')+'" data-dist-unit="km">km</button><button class="'+(getDistanceUnit()==='mi'?'on':'')+'" data-dist-unit="mi">mi</button></span></div>'
+      : '')+
+    (isWeightTrackingOn() ? '<div class="body-goal-form">'+
       '<div class="body-goal-title">Goals</div>'+
       '<div class="body-goal-row">'+
         '<input type="text" class="body-goal-input" id="goal-input" placeholder="Weight '+unit+'" value="'+(goalW != null ? fmtWeight(goalW, unit) : '')+'" inputmode="decimal" autocomplete="off" spellcheck="false" />'+
@@ -24274,11 +24645,12 @@ function renderBody() {
         (goalW != null || goalBF != null ? '<button class="btn btn-ghost btn-sm" id="clear-goal-btn">Clear</button>' : '')+
       '</div>'+
       '<div class="body-goal-hint">Weight alone can mislead &mdash; if you\'re lifting, the scale may hold while body fat drops. Tracking both gives a truer picture of recomposition.</div>'+
-    '</div>'+
-    '<h2 class="section-head">Weight over time</h2>'+
-    '<div class="body-chart-wrap">'+(entries.filter(e => e.weight != null).length >= 2 ? '<div class="body-chart">'+bodyChartSVG(entries, goalW, unit)+'</div>' : '<div class="body-chart-empty"><div class="big" style="font-family:\'Fraunces\',Georgia,serif;font-style:italic;color:var(--ink-2);font-size:22px;margin-bottom:6px;">Log a few entries.</div>Once you have 2+ logs, your trend will chart here.</div>')+'</div>'+
-    (entries.filter(e => e.bodyFat != null).length >= 2 ? '<h2 class="section-head">Body fat over time</h2><div class="body-chart-wrap"><div class="body-chart">'+bodyFatChartSVG(entries.filter(e => e.bodyFat != null), goalBF)+'</div></div>' : '')+
-    renderBodyEntries(entries, unit)+
+    '</div>' : '')+
+    (isWeightTrackingOn() ? '<h2 class="section-head">Weight over time</h2>'+
+    '<div class="body-chart-wrap">'+(entries.filter(e => e.weight != null).length >= 2 ? '<div class="body-chart">'+bodyChartSVG(entries, goalW, unit)+'</div>' : '<div class="body-chart-empty"><div class="big" style="font-family:\'Fraunces\',Georgia,serif;font-style:italic;color:var(--ink-2);font-size:22px;margin-bottom:6px;">Log a few entries.</div>Once you have 2+ logs, your trend will chart here.</div>')+'</div>' : '')+
+    (isWeightTrackingOn() && entries.filter(e => e.bodyFat != null).length >= 2 ? '<h2 class="section-head">Body fat over time</h2><div class="body-chart-wrap"><div class="body-chart">'+bodyFatChartSVG(entries.filter(e => e.bodyFat != null), goalBF)+'</div></div>' : '')+
+    (isAnyBodyTrackingOn() ? renderBodyEntries(entries, unit) : '')+
+    (!isAnyBodyTrackingOn() ? '<div class="body-tracking-off"><div class="body-tracking-off-title">All Body tracking is off.</div><div class="body-tracking-off-sub">Your logged history is preserved. Re-enable any of weight, steps, or food in <b>Settings &rarr; Body tracking</b> to see it again.</div></div>' : '')+
     renderSleepSection();
 
   pane.querySelectorAll('.unit-toggle button').forEach(b => {
@@ -24311,7 +24683,8 @@ function renderBody() {
       if (line) line.remove();
     };
   });
-  document.getElementById('log-weight-btn').onclick = () => {
+  const logWeightBtn = document.getElementById('log-weight-btn');
+  if (logWeightBtn) logWeightBtn.onclick = () => {
     const w = parseWeightInput(document.getElementById('weight-input').value, unit);
     const bfEl = document.getElementById('bf-input');
     const bfRaw = bfEl ? bfEl.value : '';
@@ -24351,7 +24724,8 @@ function renderBody() {
   };
   // Wire food card (v1.23.67)
   wireFoodCard(pane);
-  document.getElementById('set-goal-btn').onclick = () => {
+  const setGoalBtn = document.getElementById('set-goal-btn');
+  if (setGoalBtn) setGoalBtn.onclick = () => {
     const gw = parseWeightInput(document.getElementById('goal-input').value, unit);
     const gbfEl = document.getElementById('goal-bf-input');
     const gbfRaw = gbfEl ? gbfEl.value : '';
