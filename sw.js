@@ -1,15 +1,26 @@
 // Sessions — service worker
-// Cache-first strategy for the main HTML page and its static assets (Google Fonts, CDN libs).
-// Version bump invalidates old caches and forces a refresh on next open.
-const CACHE_NAME = 'sessions-v121';
+// IMPORTANT: CACHE_NAME must stay 'sessions-' + APP_VERSION (see index.html). A deploy must
+// change these bytes, otherwise the browser sees no update and the in-app "update available"
+// banner never fires. Bump both together every release.
+const CACHE_NAME = 'sessions-v1.24.0';
+
+// S1: app shell precached at install so the app opens offline even on the FIRST launch after
+// install. The previous SW cached nothing at install and relied on an earlier online fetch,
+// so a fresh install with no network could show a blank page.
+const PRECACHE_URLS = ['./', './index.html', './sw.js'];
 
 self.addEventListener('install', event => {
-  // Activate the new SW as soon as it's installed — don't wait for all tabs to close
+  // Activate the new SW as soon as it's installed — don't wait for all tabs to close.
   self.skipWaiting();
+  event.waitUntil(
+    caches.open(CACHE_NAME)
+      .then(cache => cache.addAll(PRECACHE_URLS))
+      .catch(() => {})   // best-effort — a failed precache must never block activation
+  );
 });
 
 self.addEventListener('activate', event => {
-  // Take control of any open pages immediately, and clean up old cache versions
+  // Take control of any open pages immediately, and clean up old cache versions.
   event.waitUntil((async () => {
     const keys = await caches.keys();
     await Promise.all(keys.filter(k => k !== CACHE_NAME).map(k => caches.delete(k)));
@@ -17,11 +28,10 @@ self.addEventListener('activate', event => {
   })());
 });
 
-// Listen for messages from the page — used by the in-app "Update available" banner
-// to force a waiting SW to take over without the user having to close+reopen.
-// Also handles rest-end notification requests from the page; SW-issued notifications
-// behave better than page-issued ones (survive backgrounding, reach paired watches more
-// reliably on Android Chrome).
+// Listen for messages from the page — used by the in-app "Update available" banner to force a
+// waiting SW to take over without the user closing+reopening. Also handles rest-end
+// notification requests; SW-issued notifications survive backgrounding and reach paired watches
+// more reliably on Android Chrome than page-issued ones.
 self.addEventListener('message', event => {
   if (event.data && event.data.type === 'SKIP_WAITING') {
     self.skipWaiting();
@@ -54,7 +64,9 @@ self.addEventListener('notificationclick', event => {
     for (const client of all) {
       if ('focus' in client) return client.focus();
     }
-    if (self.clients.openWindow) return self.clients.openWindow('/');
+    // Q4: open the app at its own scope — NOT '/', which lands on the domain root and 404s/misses
+    // when the app is hosted on a GitHub Pages project subpath (e.g. /Gym-session/).
+    if (self.clients.openWindow) return self.clients.openWindow(self.registration.scope || './');
   })());
 });
 
@@ -66,23 +78,37 @@ self.addEventListener('fetch', event => {
   const url = new URL(event.request.url);
   if (url.protocol !== 'http:' && url.protocol !== 'https:') return;
 
+  const isNavigation = event.request.mode === 'navigate' || event.request.destination === 'document';
+
+  if (isNavigation) {
+    // S2: network-FIRST for the app document, so a fresh deploy is picked up on the next open.
+    // (The old stale-while-revalidate served the PREVIOUS version for one launch after deploy.)
+    // Falls back to the cached document — then the precached shell — when offline.
+    event.respondWith((async () => {
+      const cache = await caches.open(CACHE_NAME);
+      try {
+        const fresh = await fetch(event.request);
+        if (fresh && fresh.ok) cache.put(event.request, fresh.clone()).catch(() => {});
+        return fresh;
+      } catch (e) {
+        const cached = await cache.match(event.request);
+        return cached || (await cache.match('./index.html')) || (await cache.match('./')) || Response.error();
+      }
+    })());
+    return;
+  }
+
+  // Static assets (fonts, CDN libs, etc): stale-while-revalidate — serve cached immediately,
+  // refresh in the background, fall back to network then cache.
   event.respondWith((async () => {
     const cache = await caches.open(CACHE_NAME);
-
-    // Stale-while-revalidate: serve cached version immediately, update in background.
-    // Falls back to network only, and then cache-only if offline.
     const cached = await cache.match(event.request);
-
     const fetching = fetch(event.request).then(response => {
-      // Only cache successful same-origin or opaquely-cacheable responses
       if (response && response.ok && (response.type === 'basic' || response.type === 'cors')) {
-        // Clone before caching — body can only be consumed once
         cache.put(event.request, response.clone()).catch(() => {});
       }
       return response;
     }).catch(() => cached);
-
-    // Return cached if we have it, else the network response
     return cached || fetching;
   })());
 });

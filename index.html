@@ -80,15 +80,39 @@
 
   // === Web manifest (PWA install on Android + installed on iOS 16.4+) ===
   try {
-    const svg = "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'><defs><radialGradient id='g' cx='50%' cy='60%' r='65%'><stop offset='0%' stop-color='#0a1a14'/><stop offset='100%' stop-color='#05060a'/></radialGradient><radialGradient id='h' cx='50%' cy='50%' r='50%'><stop offset='0%' stop-color='#37d399' stop-opacity='0.6'/><stop offset='60%' stop-color='#37d399' stop-opacity='0.1'/><stop offset='100%' stop-color='#37d399' stop-opacity='0'/></radialGradient></defs><rect width='512' height='512' fill='url(#g)'/><circle cx='256' cy='256' r='200' fill='url(#h)'/><circle cx='256' cy='256' r='64' fill='#37d399'/></svg>";
-    const iconUrl = URL.createObjectURL(new Blob([svg], { type:'image/svg+xml' }));
+    // Render stable PNG icons (192 + 512, plus a maskable 512 with safe-zone padding) as data:
+    // URLs. data: URLs persist for the life of the install, unlike the previous ephemeral blob:
+    // SVG icon, which could be revoked and leave Android with a broken/generic home-screen icon. (v1.24.0)
+    const _iconPNG = (size, maskable) => {
+      const c = document.createElement('canvas'); c.width = c.height = size;
+      const ctx = c.getContext('2d');
+      const cx = size / 2, cy = size / 2;
+      const bg = ctx.createRadialGradient(cx, size * 0.6, 0, cx, size * 0.6, size * 0.72);
+      bg.addColorStop(0, '#0a1a14'); bg.addColorStop(1, '#05060a');
+      ctx.fillStyle = bg; ctx.fillRect(0, 0, size, size);
+      const glow = ctx.createRadialGradient(cx, cy, 0, cx, cy, size * 0.5);
+      glow.addColorStop(0, 'rgba(55,211,153,0.55)'); glow.addColorStop(0.55, 'rgba(55,211,153,0.12)'); glow.addColorStop(1, 'rgba(55,211,153,0)');
+      ctx.fillStyle = glow; ctx.fillRect(0, 0, size, size);
+      // Rotated square mark — kept inside the maskable safe zone (~80%) when maskable.
+      const half = size * (maskable ? 0.16 : 0.20);
+      ctx.save(); ctx.translate(cx, cy); ctx.rotate(Math.PI / 4);
+      ctx.shadowColor = 'rgba(55,211,153,0.6)'; ctx.shadowBlur = size * 0.11;
+      ctx.fillStyle = '#37d399'; ctx.fillRect(-half, -half, half * 2, half * 2);
+      ctx.restore();
+      return c.toDataURL('image/png');
+    };
+    const png192 = _iconPNG(192, false), png512 = _iconPNG(512, false), png512m = _iconPNG(512, true);
     const manifest = {
       name:'Sessions', short_name:'Sessions',
       description:'Your workout tracker',
       start_url:'.', scope:'.',
       display:'standalone', orientation:'portrait',
       theme_color:'#05060a', background_color:'#05060a',
-      icons:[{ src:iconUrl, sizes:'any', type:'image/svg+xml', purpose:'any maskable' }]
+      icons:[
+        { src:png192, sizes:'192x192', type:'image/png', purpose:'any' },
+        { src:png512, sizes:'512x512', type:'image/png', purpose:'any' },
+        { src:png512m, sizes:'512x512', type:'image/png', purpose:'maskable' }
+      ]
     };
     const mUrl = URL.createObjectURL(new Blob([JSON.stringify(manifest)], { type:'application/manifest+json' }));
     const link = document.createElement('link');
@@ -102,25 +126,10 @@
   // Netlify, GitHub Pages, or a filesystem that supports it can serve it). If no sw.js is found,
   // registration silently fails and the app still runs fine — just without offline support.
   //
-  // For deployments: drop a file named 'sw.js' next to sessions.html with the following contents:
-  //
-  //   const CACHE_NAME = 'sessions-v1';
-  //   self.addEventListener('install', e => { self.skipWaiting(); });
-  //   self.addEventListener('activate', e => { e.waitUntil(clients.claim()); });
-  //   self.addEventListener('fetch', e => {
-  //     if (e.request.method !== 'GET') return;
-  //     e.respondWith((async () => {
-  //       const cache = await caches.open(CACHE_NAME);
-  //       const cached = await cache.match(e.request);
-  //       const fetching = fetch(e.request).then(r => {
-  //         if (r && r.ok && (r.type === 'basic' || r.type === 'cors')) {
-  //           cache.put(e.request, r.clone()).catch(()=>{});
-  //         }
-  //         return r;
-  //       }).catch(() => cached);
-  //       return cached || fetching;
-  //     })());
-  //   });
+  // For deployments: the companion service worker is the real file 'sw.js' next to index.html
+  // in this repo — see that file for the caching strategy (network-first for the document,
+  // stale-while-revalidate for static assets, app-shell precache). Keep its CACHE_NAME in
+  // lock-step with APP_VERSION below ('sessions-' + APP_VERSION) so updates are detected.
   //
   // Service workers only work over HTTPS or localhost (content:// URLs will skip silently).
   try {
@@ -219,7 +228,7 @@
   --container-max:880px;
   --tab-h:52px;
 }
-:root[data-theme="dark"]{--bg:#05060a;--bg-2:#0a0c14;--ink:#ecedf0;--ink-2:#9a9ba6;--ink-3:#55586a;--line:rgba(255,255,255,0.07);--line-2:rgba(255,255,255,0.14);--line-3:rgba(255,255,255,0.22);--glass:rgba(255,255,255,0.035);--glass-hi:rgba(255,255,255,0.07);--glass-hov:rgba(255,255,255,0.10);--hi-line:rgba(255,255,255,0.10);--hi-line-strong:rgba(255,255,255,0.16);--emerald:#37d399;--emerald-glow:rgba(55,211,153,0.38);--emerald-dim:rgba(55,211,153,0.12);--amber:#f0b350;--amber-glow:rgba(240,179,80,0.32);--amber-dim:rgba(240,179,80,0.12);--rose:#f06a7a;--rose-glow:rgba(240,106,122,0.32);--rose-dim:rgba(240,106,122,0.12);--sky:#6fb8f7;--sky-glow:rgba(111,184,247,0.30);--sky-dim:rgba(111,184,247,0.12);--plum:#a58bf0;--plum-glow:rgba(165,139,240,0.30);--plum-dim:rgba(165,139,240,0.12);--teal:#48d1c7;--teal-glow:rgba(72,209,199,0.28);--pink:#f283c1;--pink-glow:rgba(242,131,193,0.28);--orange:#ff8a4c;--orange-glow:rgba(255,138,76,0.34);--orange-dim:rgba(255,138,76,0.12);--shadow-sm:0 4px 14px rgba(0,0,0,0.28);--shadow-md:0 14px 40px rgba(0,0,0,0.42);--shadow-lg:0 28px 80px rgba(0,0,0,0.55);--orb-1:rgba(55,211,153,0.36);--orb-2:rgba(165,139,240,0.28);--orb-3:rgba(240,179,80,0.14);--orb-4:rgba(111,184,247,0.20);--sticky-bg:rgba(5,6,10,0.65);--crystal-edge:linear-gradient(135deg,rgba(111,184,247,0.55),rgba(255,255,255,0.18) 45%,rgba(55,211,153,0.45));--crystal-edge-soft:linear-gradient(135deg,rgba(111,184,247,0.32),rgba(255,255,255,0.10) 45%,rgba(55,211,153,0.26));
+:root[data-theme="dark"]{--bg:#05060a;--bg-2:#0a0c14;--ink:#ecedf0;--ink-2:#9a9ba6;--ink-3:#7f8295;--line:rgba(255,255,255,0.07);--line-2:rgba(255,255,255,0.14);--line-3:rgba(255,255,255,0.22);--glass:rgba(255,255,255,0.035);--glass-hi:rgba(255,255,255,0.07);--glass-hov:rgba(255,255,255,0.10);--hi-line:rgba(255,255,255,0.10);--hi-line-strong:rgba(255,255,255,0.16);--emerald:#37d399;--emerald-glow:rgba(55,211,153,0.38);--emerald-dim:rgba(55,211,153,0.12);--amber:#f0b350;--amber-glow:rgba(240,179,80,0.32);--amber-dim:rgba(240,179,80,0.12);--rose:#f06a7a;--rose-glow:rgba(240,106,122,0.32);--rose-dim:rgba(240,106,122,0.12);--sky:#6fb8f7;--sky-glow:rgba(111,184,247,0.30);--sky-dim:rgba(111,184,247,0.12);--plum:#a58bf0;--plum-glow:rgba(165,139,240,0.30);--plum-dim:rgba(165,139,240,0.12);--teal:#48d1c7;--teal-glow:rgba(72,209,199,0.28);--pink:#f283c1;--pink-glow:rgba(242,131,193,0.28);--orange:#ff8a4c;--orange-glow:rgba(255,138,76,0.34);--orange-dim:rgba(255,138,76,0.12);--shadow-sm:0 4px 14px rgba(0,0,0,0.28);--shadow-md:0 14px 40px rgba(0,0,0,0.42);--shadow-lg:0 28px 80px rgba(0,0,0,0.55);--orb-1:rgba(55,211,153,0.36);--orb-2:rgba(165,139,240,0.28);--orb-3:rgba(240,179,80,0.14);--orb-4:rgba(111,184,247,0.20);--sticky-bg:rgba(5,6,10,0.65);--crystal-edge:linear-gradient(135deg,rgba(111,184,247,0.55),rgba(255,255,255,0.18) 45%,rgba(55,211,153,0.45));--crystal-edge-soft:linear-gradient(135deg,rgba(111,184,247,0.32),rgba(255,255,255,0.10) 45%,rgba(55,211,153,0.26));
   /* Theme-specific elevation (uses theme's hi-line + dark-tuned shadows) */
   --e2:0 1px 0 var(--hi-line) inset, 0 4px 14px rgba(0,0,0,0.20);
   --e3:0 1px 0 var(--hi-line-strong) inset, 0 12px 32px rgba(0,0,0,0.36);
@@ -236,7 +245,7 @@
   /* Ink — three levels of text contrast */
   --ink:#15171d;              /* Strong primary, clear on glass cards */
   --ink-2:#4a4d57;            /* Body text */
-  --ink-3:#787c87;            /* Tertiary labels */
+  --ink-3:#5b5e69;            /* Tertiary labels — darkened for WCAG AA contrast on cream (v1.24.0) */
   /* Borders */
   --line:rgba(0,0,0,0.08);
   --line-2:rgba(0,0,0,0.13);
@@ -5635,6 +5644,31 @@ body.ss-select-mode .exercise-actions{pointer-events:none;opacity:0.35}
   .session-footer.sticky-mobile .session-volume{flex:1;font-size:12px}
   .session-footer.sticky-mobile .btn{padding:10px 14px;font-size:13px;min-height:44px}
 }
+
+/* ===================== v1.24.0 UPGRADE STYLES ===================== */
+/* C1/C2/C4 — storage-failure + backup banners. Fixed to the very top, above modals. */
+.storage-error-banner{position:fixed;top:0;left:0;right:0;z-index:4000;display:flex;align-items:center;gap:10px;
+  padding:calc(10px + env(safe-area-inset-top)) 14px 10px;
+  background:#3a0d0d;color:#ffe9e9;border-bottom:1px solid #7f1d1d;
+  font-size:13px;line-height:1.35;font-family:inherit;
+  transform:translateY(-110%);transition:transform .28s ease;box-shadow:0 6px 20px rgba(0,0,0,.35)}
+.storage-error-banner.show{transform:translateY(0)}
+.storage-error-banner.info{background:#0d1b2a;color:#e7f0fb;border-bottom:1px solid #28415c}
+.storage-error-banner .seb-msg{flex:1;min-width:0}
+.storage-error-banner .seb-act{flex:none;background:#fff;color:#3a0d0d;border:none;border-radius:8px;padding:8px 12px;font-weight:700;font-size:12px;cursor:pointer;min-height:36px}
+.storage-error-banner.info .seb-act{color:#0d1b2a}
+.storage-error-banner .seb-dismiss{flex:none;background:transparent;border:none;color:inherit;font-size:20px;line-height:1;cursor:pointer;padding:4px 8px;opacity:.8;min-height:36px;min-width:36px}
+.storage-error-banner .seb-dismiss:hover{opacity:1}
+/* Q2 — visually-hidden live region for screen-reader announcements */
+.sr-only{position:absolute!important;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+/* A11y — ensure key interactive controls meet the 44px touch-target minimum */
+.timer-btn{min-height:44px}
+.icon-btn{min-width:44px;min-height:44px}
+.tab{min-height:44px}
+/* S6 (safe subset) — let the browser skip layout/paint for off-screen list cards. Cuts work
+   on long History/Progress lists without changing behaviour. Generous intrinsic size avoids
+   scrollbar jumpiness. */
+.history-item,.prog-card,.lib-card{content-visibility:auto;contain-intrinsic-size:auto 140px}
 </style>
 </head>
 <body>
@@ -6011,7 +6045,7 @@ body.ss-select-mode .exercise-actions{pointer-events:none;opacity:0.35}
   <span class="sb-text">Session <b id="sb-count">—</b>in progress</span>
   <button class="sb-btn" id="sb-go">Resume</button>
 </div>
-<div class="rest-timer hidden" id="rest-timer">
+<div class="rest-timer hidden" id="rest-timer" role="timer" aria-label="Rest timer">
   <div class="timer-ring">
     <svg viewBox="0 0 50 50">
       <circle class="track" cx="25" cy="25" r="23" fill="none" stroke-width="3"/>
@@ -6075,7 +6109,9 @@ body.ss-select-mode .exercise-actions{pointer-events:none;opacity:0.35}
     <div class="cond-overlay-rounds" id="cond-overlay-rounds"></div>
   </div>
 </div>
-<div class="toast" id="toast"><span class="toast-dot"></span><span id="toast-msg"></span><button class="toast-action" id="toast-action" hidden></button></div>
+<div class="toast" id="toast" role="status" aria-live="polite" aria-atomic="true"><span class="toast-dot"></span><span id="toast-msg"></span><button class="toast-action" id="toast-action" hidden></button></div>
+<!-- Q2: visually-hidden assertive live region for critical announcements (rest complete, errors) -->
+<div id="sr-announce" class="sr-only" role="alert" aria-live="assertive" aria-atomic="true"></div>
 <script>
 (function(){
 'use strict';
@@ -6288,11 +6324,12 @@ function foodDailyTotals(dateISO) {
 // Delete by entry id (new format) or fall back to date (legacy entries that don't have ids).
 function deleteFoodEntry(idOrDate) {
   if (!state.body || !state.body.food) return;
-  const before = state.body.food.entries.length;
-  state.body.food.entries = state.body.food.entries.filter(e =>
-    e.id !== idOrDate && (e.id ? true : e.date !== idOrDate)
-  );
-  if (state.body.food.entries.length !== before) save();
+  const keep = e => e.id !== idOrDate && (e.id ? true : e.date !== idOrDate);
+  const removed = state.body.food.entries.filter(e => !keep(e));   // C3: capture for undo
+  if (!removed.length) return;
+  state.body.food.entries = state.body.food.entries.filter(keep);
+  const binId = _recycleAdd(removed.length === 1 ? removed[0] : removed, 'food', 'Food log');  // saves
+  if (binId && typeof recycleToastUndo === 'function') recycleToastUndo('Food log deleted', binId);
 }
 // Delete all entries for a given date (used when the user wants to clear an entire day's log)
 function deleteFoodDate(dateISO) {
@@ -6626,7 +6663,9 @@ function _squashMatchSummary(match) {
   const { yourGames: y, theirGames: t, complete } = _squashMatchTally(match);
   if (complete) {
     if (y > t) return { text: 'Won ' + y + '-' + t, state: 'won' };
-    return { text: 'Lost ' + y + '-' + t, state: 'lost' };
+    if (y < t) return { text: 'Lost ' + y + '-' + t, state: 'lost' };
+    // Q9: a COMPLETE tie (possible in "friendly" format) is a draw, not a loss.
+    return { text: 'Tied ' + y + '-' + t, state: 'tied' };
   }
   // Not complete: show in-progress with tally if any games closed
   if (y === 0 && t === 0) return { text: 'In progress', state: 'in-progress' };
@@ -6658,7 +6697,7 @@ function _squashNormOpp(name) {
 function _squashHeadToHead(opponentName, currentSetRef) {
   const norm = _squashNormOpp(opponentName);
   if (!norm) return { wins: 0, losses: 0, total: 0, history: [] };
-  const result = { wins: 0, losses: 0, total: 0, history: [] };
+  const result = { wins: 0, losses: 0, draws: 0, total: 0, history: [] };
   (state.sessions || []).forEach(s => {
     (s.exercises || []).forEach(e => {
       if (!isSquash(e)) return;
@@ -6673,15 +6712,17 @@ function _squashHeadToHead(opponentName, currentSetRef) {
         const tally = _squashMatchTally(st.match);
         if (!tally.complete) return; // incomplete matches don't count
         const won = tally.yourGames > tally.theirGames;
+        const lost = tally.theirGames > tally.yourGames;
+        const tied = !won && !lost;
         result.total++;
-        if (won) result.wins++; else if (tally.theirGames > tally.yourGames) result.losses++;
+        if (won) result.wins++; else if (lost) result.losses++; else result.draws++;  // Q9: total = wins+losses+draws
         result.history.push({
           date: s.date,
           dateMs: isoToDate(s.date).getTime(),
           summary: _squashMatchSummary(st.match).text,
           games: (st.match.games || []).filter(g => _squashGameComplete(g))
             .map(g => g.you + '-' + g.them).join(', '),
-          won
+          won, tied
         });
       });
     });
@@ -7410,10 +7451,19 @@ const libByName = {};
 LIB.forEach(e => { libByName[e.n.toLowerCase()] = e; });
 
 const STORE = 'wt_data_v1';
+const STORE_BACKUP = 'wt_data_v1__autobackup';   // C4: rolling safety backup, written at checkpoints
+const STORE_CORRUPT = 'wt_data_v1__corrupt';     // C2: quarantine slot for an unparseable primary blob
 const THEME = 'wt_theme';
 const LAST_TAB = 'wt_last_tab';
 // App version — shown in the footer + reported in bug emails. Bump per release.
-const APP_VERSION = 'v1.23.87';
+// IMPORTANT: keep this in lock-step with CACHE_NAME in sw.js ('sessions-' + this version).
+// If they drift, the service worker won't change bytes on deploy and the update banner never fires.
+const APP_VERSION = 'v1.24.0';
+const SCHEMA_VERSION = 1;                         // S4: persisted-data schema version for the migration ladder
+// C1/C2 persistence guards. Declared before loadState() runs (line below) — _saveBlocked
+// gates save() so a corrupt-but-recoverable primary blob is never overwritten with empty data.
+let _saveBlocked = false;
+let _lastSaveOk = true;
 
 // --- State ---
 let state = loadState();
@@ -7531,6 +7581,10 @@ if (typeof document !== 'undefined') {
           // Also re-arm the backup fire — defensive, in case the browser dropped it
           if (typeof scheduleBackgroundRestFire === 'function') scheduleBackgroundRestFire();
         }
+        // S5: catch the conditioning timer up after background-throttling too (parity with rest timer)
+        if (typeof condTimerState !== 'undefined' && condTimerState && condTimerState.active && !condTimerState.paused) {
+          if (typeof tickCondTimer === 'function') tickCondTimer();
+        }
       } catch(e) { console.warn('visibility re-tick failed:', e); }
     }
   });
@@ -7556,54 +7610,316 @@ function migrateProfile(p) {
   p.eqVersion = 2;
   return p;
 }
-function loadState() {
+function _freshState() {
+  return { sessions:[], active:null, library:[], injuries:[], profile:defaultProfile(), templates:[], scheduled:{}, draftSession:null, body:{ entries:[], goal:{ target:null, startWeight:null, startDate:null, targetDate:null }, unit:'kg' }, _recycleBin:[], exerciseCeilings:{}, exerciseNotes:{}, _schema:SCHEMA_VERSION };
+}
+// S4: ordered migration ladder. Today there is only the baseline schema, so this just stamps
+// the version; future shape changes add `if (v < N) { ...; v = N; }` steps before the stamp.
+function _migrateData(d) {
+  let v = (typeof d._schema === 'number') ? d._schema : 0;
+  // (no migrations beyond baseline yet)
+  void v;
+  d._schema = SCHEMA_VERSION;
+  return d;
+}
+// Build a full in-memory state object from a parsed data blob (primary OR backup).
+function _hydrate(d) {
+  d = _migrateData(d || {});
+  const profile = migrateProfile(Object.assign(defaultProfile(), d.profile||{}));
+  const loaded = {
+    sessions: d.sessions||[], active: d.active||null,
+    library: d.library||[], injuries: d.injuries||[],
+    profile,
+    templates: d.templates||[],
+    scheduled: (d.scheduled && typeof d.scheduled === 'object') ? d.scheduled : {},
+    // Draft session (singular): a session you're building/editing before starting it.
+    draftSession: (d.draftSession && typeof d.draftSession === 'object' && Array.isArray(d.draftSession.exercises)) ? d.draftSession : null,
+    body: d.body || { entries:[], goal:{ target:null, startWeight:null, startDate:null, targetDate:null }, unit:'kg' },
+    // Recycle bin (v1.23.50) — soft-deleted items kept for 24 hours. Pruned post-load.
+    _recycleBin: Array.isArray(d._recycleBin) ? d._recycleBin : [],
+    // Q1: per-exercise ceilings + notes were saved and exported but NEVER re-read here, so
+    // they silently vanished on every reload. Restore them.
+    exerciseCeilings: (d.exerciseCeilings && typeof d.exerciseCeilings === 'object') ? d.exerciseCeilings : {},
+    exerciseNotes: (d.exerciseNotes && typeof d.exerciseNotes === 'object') ? d.exerciseNotes : {},
+    _schema: SCHEMA_VERSION
+  };
+  if (typeof d._lastBackupAt === 'number') loaded._lastBackupAt = d._lastBackupAt;
+  // Prune orphaned scheduled days — days whose referenced template no longer exists,
+  // or whose date is in the past (older than today).
+  const tids = new Set(loaded.templates.map(t => t.id));
+  const todayStr = (() => { const dt = new Date(); return dt.getFullYear()+'-'+String(dt.getMonth()+1).padStart(2,'0')+'-'+String(dt.getDate()).padStart(2,'0'); })();
+  Object.keys(loaded.scheduled).forEach(iso => {
+    const a = loaded.scheduled[iso];
+    if (!a || typeof a !== 'object') { delete loaded.scheduled[iso]; return; }
+    if (a.templateId && !tids.has(a.templateId) && !(a.exercises && a.exercises.length)) { delete loaded.scheduled[iso]; return; }
+    if (iso < todayStr) delete loaded.scheduled[iso];
+  });
+  return loaded;
+}
+// C4: read the rolling backup. Returns a hydrated state or null.
+function _tryLoadBackup() {
   try {
-    const raw = localStorage.getItem(STORE);
-    if (raw) {
-      const d = JSON.parse(raw);
-      const profile = migrateProfile(Object.assign(defaultProfile(), d.profile||{}));
-      const loaded = {
-        sessions: d.sessions||[], active: d.active||null,
-        library: d.library||[], injuries: d.injuries||[],
-        profile,
-        templates: d.templates||[],
-        scheduled: (d.scheduled && typeof d.scheduled === 'object') ? d.scheduled : {},
-        // Draft session (singular): a session you're building/editing before starting it.
-        // Shape: { name, exercises, createdAt, scheduledFor? } where scheduledFor is optional ISO date
-        draftSession: (d.draftSession && typeof d.draftSession === 'object' && Array.isArray(d.draftSession.exercises)) ? d.draftSession : null,
-        body: d.body || { entries:[], goal:{ target:null, startWeight:null, startDate:null, targetDate:null }, unit:'kg' },
-        // Recycle bin (v1.23.50) — soft-deleted sessions kept for 24 hours. Pruned post-load.
-        _recycleBin: Array.isArray(d._recycleBin) ? d._recycleBin : []
-      };
-      // Prune orphaned scheduled days — days whose referenced template no longer exists,
-      // or whose date is in the past (older than today).
-      const tids = new Set(loaded.templates.map(t => t.id));
-      const todayStr = (() => { const dt = new Date(); return dt.getFullYear()+'-'+String(dt.getMonth()+1).padStart(2,'0')+'-'+String(dt.getDate()).padStart(2,'0'); })();
-      Object.keys(loaded.scheduled).forEach(iso => {
-        const a = loaded.scheduled[iso];
-        // Drop bad entries
-        if (!a || typeof a !== 'object') { delete loaded.scheduled[iso]; return; }
-        // Drop references to templates that no longer exist (bespoke exercises are kept)
-        if (a.templateId && !tids.has(a.templateId) && !(a.exercises && a.exercises.length)) {
-          delete loaded.scheduled[iso];
-          return;
-        }
-        // Drop days older than today — schedule is forward-looking only
-        if (iso < todayStr) delete loaded.scheduled[iso];
-      });
-      return loaded;
-    }
-  } catch(e){}
-  return { sessions:[], active:null, library:[], injuries:[], profile:defaultProfile(), templates:[], scheduled:{}, draftSession:null, body:{ entries:[], goal:{ target:null, startWeight:null, startDate:null, targetDate:null }, unit:'kg' }, _recycleBin:[] };
+    const raw = localStorage.getItem(STORE_BACKUP);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw);
+    const d = (parsed && parsed.data && typeof parsed.data === 'object') ? parsed.data : parsed;
+    if (!d || typeof d !== 'object' || !Array.isArray(d.sessions)) return null;
+    return _hydrate(d);
+  } catch(e) { return null; }
+}
+// C2: stash an unparseable primary blob so it can be recovered/exported rather than lost.
+function _quarantineCorrupt(raw) {
+  try { localStorage.setItem(STORE_CORRUPT + '_' + Date.now(), raw); } catch(e) {}
+}
+function loadState() {
+  let raw = null;
+  try { raw = localStorage.getItem(STORE); } catch(e) { /* storage blocked (private mode) */ }
+  if (raw == null) {
+    // Genuine first run OR storage temporarily unavailable. Before assuming "new user", try
+    // the rolling backup — recovers data if the primary key was cleared/evicted.
+    const fromBackup = _tryLoadBackup();
+    if (fromBackup) { _scheduleBackupRecoveryNote(); return fromBackup; }
+    return _freshState();
+  }
+  let d;
+  try { d = JSON.parse(raw); }
+  catch(e) {
+    // C2: primary blob is present but corrupt. NEVER silently start fresh and let the next
+    // save() overwrite the recoverable bytes. Quarantine the raw string, then either recover
+    // from backup or block auto-saves and prompt the user.
+    console.error('Sessions: primary data is corrupt —', e);
+    _quarantineCorrupt(raw);
+    const fromBackup = _tryLoadBackup();
+    if (fromBackup) { _scheduleBackupRecoveryNote(); return fromBackup; }
+    _saveBlocked = true;
+    _scheduleCorruptRecoveryPrompt();
+    return _freshState();
+  }
+  try { return _hydrate(d); }
+  catch(e) {
+    console.error('Sessions: failed to hydrate data —', e);
+    _quarantineCorrupt(raw);
+    const fromBackup = _tryLoadBackup();
+    if (fromBackup) { _scheduleBackupRecoveryNote(); return fromBackup; }
+    _saveBlocked = true;
+    _scheduleCorruptRecoveryPrompt();
+    return _freshState();
+  }
 }
 function save() {
-  try { localStorage.setItem(STORE, JSON.stringify(state)); } catch(e){}
+  // C2: if the primary blob was corrupt-but-recoverable and the user hasn't resolved it, do
+  // NOT overwrite it with the current (possibly empty) in-memory state.
+  if (_saveBlocked) return false;
+  let serialized;
+  try { serialized = JSON.stringify(state); }
+  catch(e) { console.error('Sessions: could not serialize state —', e); _handleStorageError(e); return false; }
+  let ok = false;
+  try {
+    localStorage.setItem(STORE, serialized);
+    ok = true; _lastSaveOk = true;
+    _clearStorageError();
+    if (serialized.length > 4 * 1024 * 1024) _warnStorageNearFull();
+  } catch(e) {
+    // C1: the old save() swallowed this silently, so users kept logging after quota was hit
+    // and lost everything on reload. Surface it loudly with a one-tap backup.
+    ok = false; _lastSaveOk = false;
+    console.error('Sessions: save failed —', e);
+    _handleStorageError(e);
+  }
   // Re-evaluate the wake lock after every state change so session-start/end flips it automatically.
-  // The refresh function itself is cheap — it only acts if the desired state differs from the current.
   if (typeof refreshWakeLock === 'function') {
     // Schedule asynchronously so save() stays synchronous and fast.
     Promise.resolve().then(refreshWakeLock);
   }
+  return ok;
+}
+
+// === C1/C2/C4 storage-safety helpers ===================================================
+function _isQuotaError(e) {
+  return !!e && (e.name === 'QuotaExceededError' || e.name === 'NS_ERROR_DOM_QUOTA_REACHED' || e.code === 22 || e.code === 1014);
+}
+// Self-contained backup: download a JSON file, falling back to clipboard. Independent of the
+// Settings UI so it works even when called from the storage-error banner mid-failure.
+function _emergencyBackup() {
+  let json;
+  try { json = JSON.stringify(exportData()); } catch(e) { return false; }
+  try {
+    const blob = new Blob([json], { type:'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = 'sessions-backup-' + todayISO() + '.json';
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => { try { URL.revokeObjectURL(url); } catch(_){} }, 1500);
+    _markBackedUp();
+    return true;
+  } catch(e) {}
+  try { if (navigator.clipboard && navigator.clipboard.writeText) { navigator.clipboard.writeText(json); _markBackedUp(); return true; } } catch(e) {}
+  return false;
+}
+function _storageBanner() {
+  let b = document.getElementById('storage-error-banner');
+  if (!b) {
+    b = document.createElement('div');
+    b.id = 'storage-error-banner';
+    b.className = 'storage-error-banner';
+    b.setAttribute('role', 'alert');
+    b.innerHTML = '<span class="seb-msg"></span><button type="button" class="seb-act">Export backup</button><button type="button" class="seb-dismiss" aria-label="Dismiss">×</button>';
+    (document.body || document.documentElement).appendChild(b);
+    b.querySelector('.seb-act').addEventListener('click', () => { if (_emergencyBackup()) toast('Backup saved.'); else toast('Backup failed — copy your data from Settings.'); });
+    b.querySelector('.seb-dismiss').addEventListener('click', () => b.classList.remove('show'));
+  }
+  return b;
+}
+function _handleStorageError(e) {
+  const b = _storageBanner();
+  // restore default action wording in case a recovery prompt repurposed it
+  b.querySelector('.seb-act').textContent = 'Export backup';
+  b.querySelector('.seb-act').onclick = null;
+  b.querySelector('.seb-msg').textContent = _isQuotaError(e)
+    ? 'Storage is full — your latest changes did NOT save. Export a backup now to avoid losing data.'
+    : 'Could not save your changes. Export a backup now to be safe.';
+  b.classList.add('show');
+}
+function _clearStorageError() {
+  const b = document.getElementById('storage-error-banner');
+  if (b) b.classList.remove('show');
+}
+function _warnStorageNearFull() {
+  if (_warnStorageNearFull._done) return; _warnStorageNearFull._done = true;
+  if (typeof toast === 'function') toast('Your data is getting large — keep a recent backup handy.');
+}
+function _scheduleCorruptRecoveryPrompt() {
+  setTimeout(() => {
+    const b = _storageBanner();
+    b.querySelector('.seb-msg').textContent = 'Your saved data could not be read and has been set aside (not deleted). Auto-save is paused. Export the raw data to recover it.';
+    const act = b.querySelector('.seb-act');
+    act.textContent = 'Export raw data';
+    act.onclick = () => {
+      try {
+        const keys = Object.keys(localStorage).filter(k => k.indexOf(STORE_CORRUPT) === 0).sort();
+        const raw = keys.length ? localStorage.getItem(keys[keys.length - 1]) : '';
+        const blob = new Blob([raw || ''], { type:'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a'); a.href = url; a.download = 'sessions-corrupt-recovery.json';
+        document.body.appendChild(a); a.click(); a.remove();
+        setTimeout(() => { try { URL.revokeObjectURL(url); } catch(_){} }, 1500);
+      } catch(_) { toast('Could not export — check Settings.'); }
+    };
+    b.classList.add('show');
+  }, 800);
+}
+function _scheduleBackupRecoveryNote() {
+  // Heal the primary key by re-saving the recovered state over the corrupt/missing bytes,
+  // then let the user know. Deferred so `state` is assigned and the DOM is ready.
+  setTimeout(() => { try { save(); } catch(_){} if (typeof toast === 'function') toast('Recovered your data from the latest auto-backup.'); }, 800);
+}
+// C4: rolling auto-backup written at safe checkpoints (session finish, import). Best-effort —
+// if it fails (e.g. quota) the primary save() banner already covers the user.
+function _writeAutoBackup() {
+  try {
+    const payload = JSON.stringify({ __app:'sessions', __version:EXPORT_VERSION, __backupAt: Date.now(), data: state });
+    localStorage.setItem(STORE_BACKUP, payload);
+    _markBackedUp();
+  } catch(e) { /* best-effort */ }
+}
+function _markBackedUp() {
+  try { state._lastBackupAt = Date.now(); } catch(e) {}
+}
+// C4: a soft, dismissible reminder to export a backup when there's data at risk and it has
+// been a while. Throttled so it never nags more than every few days.
+function _maybeShowBackupNudge() {
+  try {
+    if ((state.sessions||[]).length < 5) return;
+    const now = Date.now();
+    const last = state._lastBackupAt || 0;
+    const lastShown = state._backupNudgeShownAt || 0;
+    if ((now - last) < 14*24*60*60*1000) return;     // backed up recently enough
+    if ((now - lastShown) < 3*24*60*60*1000) return; // don't nag more than every ~3 days
+    state._backupNudgeShownAt = now; save();
+    let b = document.getElementById('backup-nudge-banner');
+    if (!b) {
+      b = document.createElement('div');
+      b.id = 'backup-nudge-banner';
+      b.className = 'storage-error-banner info';
+      b.setAttribute('role', 'status');
+      b.innerHTML = '<span class="seb-msg">Your data lives only on this device. Back it up so you don\'t lose it.</span><button type="button" class="seb-act">Back up now</button><button type="button" class="seb-dismiss" aria-label="Dismiss">×</button>';
+      (document.body || document.documentElement).appendChild(b);
+      b.querySelector('.seb-act').addEventListener('click', () => { if (_emergencyBackup()) { toast('Backup saved.'); b.classList.remove('show'); } else toast('Backup failed — copy from Settings.'); });
+      b.querySelector('.seb-dismiss').addEventListener('click', () => b.classList.remove('show'));
+    }
+    setTimeout(() => b.classList.add('show'), 1200);
+  } catch(e) {}
+}
+// One-time orientation card for brand-new users — explains the local-only data model (so they
+// back up) and where the main areas live. Gated by a localStorage flag; only shown when there
+// is no data yet. (v1.24.0)
+function _maybeShowFirstRunCard() {
+  try {
+    const KEY = 'sessions_firstrun_v1';
+    if (localStorage.getItem(KEY)) return;
+    if ((state.sessions||[]).length > 0) { try { localStorage.setItem(KEY, '1'); } catch(e){} return; }
+    let b = document.getElementById('firstrun-banner');
+    if (!b) {
+      b = document.createElement('div');
+      b.id = 'firstrun-banner';
+      b.className = 'storage-error-banner info';
+      b.setAttribute('role', 'status');
+      b.innerHTML = '<span class="seb-msg"><b>Welcome to Sessions.</b> Your data is stored on this device only — export a backup from Settings now and then. Log workouts on <b>Today</b>, build routines in <b>Plan</b>, and track weight, food &amp; sleep in <b>Body</b>.</span><button type="button" class="seb-dismiss" aria-label="Dismiss">×</button>';
+      (document.body || document.documentElement).appendChild(b);
+      b.querySelector('.seb-dismiss').addEventListener('click', () => { b.classList.remove('show'); try { localStorage.setItem(KEY, '1'); } catch(e){} });
+    }
+    setTimeout(() => b.classList.add('show'), 900);
+  } catch(e) {}
+}
+// S7: global modal accessibility — focus trap, focus return, Escape-to-close, and
+// role=dialog/aria-modal — applied to EVERY .modal-backdrop by observing the .hidden class
+// toggle, so no per-modal open/close function needs changing. Purely additive.
+function _setupModalA11y() {
+  let lastFocus = null;
+  // NB: don't use offsetParent for visibility — .modal-backdrop is position:fixed (offsetParent
+  // is null for fixed elements). The app toggles visibility via the .hidden class, so use that.
+  const isOpen = el => !!el && !!el.classList && el.classList.contains('modal-backdrop') && !el.classList.contains('hidden');
+  const focusables = m => Array.from(m.querySelectorAll('a[href],button:not([disabled]),input:not([disabled]):not([type=hidden]),select:not([disabled]),textarea:not([disabled]),[tabindex]:not([tabindex="-1"])')).filter(el => el.offsetParent !== null);
+  const topModal = () => { const open = Array.from(document.querySelectorAll('.modal-backdrop')).filter(isOpen); return open.length ? open[open.length - 1] : null; };
+  function onShow(backdrop) {
+    lastFocus = document.activeElement;
+    const modal = backdrop.querySelector('.modal') || backdrop;
+    backdrop.setAttribute('role', 'dialog');
+    backdrop.setAttribute('aria-modal', 'true');
+    if (!modal.hasAttribute('tabindex')) modal.setAttribute('tabindex', '-1');
+    // Focus the dialog container (not the first input) so we don't surprise-open the mobile
+    // keyboard; modals that want an input focused already do so themselves.
+    setTimeout(() => { try { if (isOpen(backdrop) && !modal.contains(document.activeElement)) modal.focus(); } catch(_){} }, 40);
+  }
+  function onHide(backdrop) {
+    backdrop.removeAttribute('aria-modal');
+    if (lastFocus && typeof lastFocus.focus === 'function') { try { lastFocus.focus(); } catch(_){} }
+    lastFocus = null;
+  }
+  const obs = new MutationObserver(muts => {
+    muts.forEach(m => {
+      if (m.attributeName !== 'class') return;
+      const el = m.target;
+      if (!el.classList || !el.classList.contains('modal-backdrop')) return;
+      const open = !el.classList.contains('hidden');
+      if (open && !el.dataset._a11yOpen) { el.dataset._a11yOpen = '1'; onShow(el); }
+      else if (!open && el.dataset._a11yOpen) { delete el.dataset._a11yOpen; onHide(el); }
+    });
+  });
+  document.querySelectorAll('.modal-backdrop').forEach(el => obs.observe(el, { attributes: true, attributeFilter: ['class'] }));
+  document.addEventListener('keydown', e => {
+    const top = topModal();
+    if (!top) return;
+    if (e.key === 'Escape') { e.preventDefault(); top.classList.add('hidden'); return; }
+    if (e.key === 'Tab') {
+      const f = focusables(top);
+      if (!f.length) { e.preventDefault(); (top.querySelector('.modal') || top).focus(); return; }
+      const first = f[0], last = f[f.length - 1];
+      if (!top.contains(document.activeElement)) { e.preventDefault(); first.focus(); }
+      else if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+      else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+    }
+  });
 }
 
 // === Recycle bin (v1.23.50) ===========================================================
@@ -7656,6 +7972,38 @@ function _recycleRestore(binId) {
   const idx = state._recycleBin.findIndex(e => e.id === binId);
   if (idx < 0) return false;
   const entry = state._recycleBin[idx];
+  // C3: body / food / sleep deletions are soft-deletes too. item may be a single object or
+  // an array (e.g. "delete all logged values for a date" bins every entry for that day).
+  if (entry.kind === 'body') {
+    if (!state.body) state.body = { entries:[], goal:{}, unit:'kg' };
+    if (!Array.isArray(state.body.entries)) state.body.entries = [];
+    const items = Array.isArray(entry.item) ? entry.item : [entry.item];
+    items.forEach(it => {
+      if (!it) return;
+      const ex = state.body.entries.find(e => e.date === it.date);
+      if (ex) { ['weight','bodyFat','steps'].forEach(k => { if (ex[k] == null && it[k] != null) ex[k] = it[k]; }); }
+      else state.body.entries.push(it);
+    });
+    state.body.entries.sort((a,b) => a.date.localeCompare(b.date));
+    state._recycleBin.splice(idx, 1); save(); return true;
+  }
+  if (entry.kind === 'food') {
+    if (!state.body) state.body = { entries:[], goal:{}, unit:'kg' };
+    if (!state.body.food) state.body.food = (typeof defaultFood === 'function') ? defaultFood() : { entries:[], saved:[] };
+    if (!Array.isArray(state.body.food.entries)) state.body.food.entries = [];
+    const items = Array.isArray(entry.item) ? entry.item : [entry.item];
+    items.forEach(it => { if (it && !(it.id && state.body.food.entries.some(e => e.id === it.id))) state.body.food.entries.push(it); });
+    state.body.food.entries.sort((a,b) => { if (a.date !== b.date) return a.date.localeCompare(b.date); return (a.time||0) - (b.time||0); });
+    state._recycleBin.splice(idx, 1); save(); return true;
+  }
+  if (entry.kind === 'sleep') {
+    if (!state.body) state.body = { entries:[], goal:{}, unit:'kg' };
+    if (!Array.isArray(state.body.sleep)) state.body.sleep = [];
+    const items = Array.isArray(entry.item) ? entry.item : [entry.item];
+    items.forEach(it => { if (it && !state.body.sleep.some(s => s.date === it.date)) state.body.sleep.push(it); });
+    state.body.sleep.sort((a,b) => a.date.localeCompare(b.date));
+    state._recycleBin.splice(idx, 1); save(); return true;
+  }
   if (entry.kind === 'active') {
     if (state.active && (state.active.exercises || []).length) {
       if (!confirm('You have a session in progress. Replace it with the restored one?')) return false;
@@ -7702,6 +8050,7 @@ function recycleToastUndo(message, binId) {
         renderHero();
         if (currentTab === 'history') renderHistory();
         if (currentTab === 'progress') { renderMuscleBalance(); renderProgress(); }
+        if (currentTab === 'body' && typeof renderBody === 'function') renderBody();
         renderStats(); renderInsights(); updateSessionIndicators();
         toast('Restored.');
       } else {
@@ -7743,8 +8092,8 @@ function importData(raw, opts) {
   let data;
   try { data = JSON.parse(raw); } catch(e) { return { ok:false, error:'Invalid JSON. Check the text is a full backup.' }; }
   if (!data || typeof data !== 'object') return { ok:false, error:'Backup is empty or malformed.' };
-  // Accept both our export format and raw state dumps
-  const src = data.__app === 'sessions' ? data : data;
+  // Accept both our export format and raw state dumps (both have the same top-level shape)
+  const src = data;
   const incomingSessions = Array.isArray(src.sessions) ? src.sessions : [];
   const incomingBody = src.body && typeof src.body === 'object' ? src.body : null;
   const incomingTemplates = Array.isArray(src.templates) ? src.templates : [];
@@ -7752,13 +8101,20 @@ function importData(raw, opts) {
   const incomingInjuries = Array.isArray(src.injuries) ? src.injuries : [];
   const incomingProfile = src.profile && typeof src.profile === 'object' ? src.profile : null;
 
-  // Safety copy current data to clipboard before destructive replace
+  // C5: a destructive Replace must be guarded. Refuse payloads that don't look like a real
+  // backup, and refuse a Replace that would wipe local data with an empty import. Write a
+  // RELIABLE safety backup to localStorage first (clipboard is best-effort and can fail silently).
   if (!opts.merge) {
-    try {
-      if (navigator.clipboard && navigator.clipboard.writeText) {
-        navigator.clipboard.writeText(JSON.stringify(exportData()));
-      }
-    } catch(e) {}
+    const looksLikeBackup = data.__app === 'sessions' || Array.isArray(src.sessions) ||
+      (src.body && Array.isArray(src.body.entries)) || Array.isArray(src.templates) || Array.isArray(src.library);
+    if (!looksLikeBackup) return { ok:false, error:'This doesn\'t look like a Sessions backup — Replace cancelled to protect your data.' };
+    const localCount = (state.sessions||[]).length + (((state.body||{}).entries)||[]).length;
+    const incomingCount = incomingSessions.length + (incomingBody && Array.isArray(incomingBody.entries) ? incomingBody.entries.length : 0);
+    if (incomingCount === 0 && localCount > 0) {
+      return { ok:false, error:'That backup has no sessions or body logs, but you have local data. Replace cancelled — use Merge, or check the file.' };
+    }
+    try { localStorage.setItem(STORE_BACKUP, JSON.stringify({ __app:'sessions', __version:EXPORT_VERSION, __backupAt: Date.now(), data: state })); } catch(e) {}
+    try { if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(JSON.stringify(exportData())); } catch(e) {}
   }
 
   let addedSessions = 0, skippedSessions = 0, addedBody = 0;
@@ -7837,6 +8193,7 @@ function importData(raw, opts) {
   }
 
   save();
+  _writeAutoBackup();  // C4: checkpoint the freshly-imported data
   const summary = opts.merge
     ? 'Imported '+addedSessions+' new session'+(addedSessions===1?'':'s')+(skippedSessions?' ('+skippedSessions+' already present)':'')+(addedBody?', '+addedBody+' body log'+(addedBody===1?'':'s'):'')
     : 'Replaced: '+addedSessions+' session'+(addedSessions===1?'':'s')+(addedBody?', '+addedBody+' body log'+(addedBody===1?'':'s'):'');
@@ -7905,6 +8262,14 @@ const toast = msg => {
   el.classList.add('show');
   clearTimeout(toast._t); toast._t = setTimeout(() => el.classList.remove('show'), 2400);
 };
+// Q2: announce a message to screen readers via the assertive live region. Use sparingly — for
+// moments that matter even when the user isn't looking at the screen (rest complete, errors).
+function srAnnounce(msg) {
+  const el = document.getElementById('sr-announce');
+  if (!el) return;
+  el.textContent = '';   // reset first so identical consecutive messages re-announce
+  setTimeout(() => { el.textContent = String(msg || ''); }, 30);
+}
 // Toast with a tappable action button. Tapping the action runs the callback and dismisses
 // the toast immediately. If the toast times out (durationMs, default 6s) the action is
 // cancelled silently. (v1.23.50)
@@ -10452,6 +10817,9 @@ function checkIsPR(ex) {
   const myMax = Math.max(0, ...(ex.sets||[]).filter(s => !s.warmup).map(s => +s.weight || 0));
   if (myMax <= 0) return false;
   const priorMax = state.sessions.flatMap(s => (s.exercises||[]).filter(e => e.name.toLowerCase() === ex.name.toLowerCase())).flatMap(e => (e.sets||[]).filter(st => !st.warmup).map(st => +st.weight || 0)).reduce((a,b) => Math.max(a,b), 0);
+  // Q7: the FIRST time you ever log an exercise is not a PR (there's nothing to beat). This
+  // matches the insight-tile logic, which already required priorMax > 0 — the two disagreed.
+  if (priorMax <= 0) return false;
   return myMax > priorMax;
 }
 function startSession() {
@@ -10582,6 +10950,10 @@ function renderRecoveryExerciseCard(e, idx) {
 function repeatLastSession(id) {
   const src = (state.sessions||[]).find(s => s.id === id) || (state.sessions||[]).slice().sort((a,b) => (b.date||'').localeCompare(a.date||''))[0];
   if (!src) { toast('No past session to repeat.'); return; }
+  // Q8: don't silently overwrite an in-progress session (matches repeatSession's guard).
+  if (state.active && (state.active.exercises||[]).length) {
+    if (!confirm('You have a session in progress. Replace it with a copy of this one?')) return;
+  }
   // Clone exercises, preserving target + superset grouping. Blank out the sets so you log fresh,
   // but respect the correct set schema for each exercise type — sport, cardio, or lift.
   const cloned = (src.exercises||[]).map(e => {
@@ -10622,6 +10994,7 @@ function repeatLastSession(id) {
     date: todayISO(),
     startTime: Date.now(),
     name: src.name || '',
+    kind: src.kind || undefined,  // Q8: preserve recovery kind so the recovery card renders correctly
     exercises: cloned
   };
   save(); renderHero(); renderStats(); renderInsights(); updateSessionIndicators();
@@ -11524,7 +11897,7 @@ function commitFinishedSession() {
   const tmplId = s.templateId || null;
   const tmplSnapshot = s.templateSnapshot || null;
   state.active = null;
-  save(); closeFinishModal(); renderHero(); renderStats(); renderInsights(); updateSessionIndicators();
+  save(); _writeAutoBackup(); closeFinishModal(); renderHero(); renderStats(); renderInsights(); updateSessionIndicators();
   if (currentTab === 'progress') { renderMuscleBalance(); renderProgress(); }
   if (currentTab === 'history') renderHistory();
   toast(isRecoverySession(s) ? 'Recovery logged.' : 'Session saved. Nice work.');
@@ -12557,6 +12930,21 @@ function renderHistory() {
 // Order: newest first. APP_VERSION constant is the source of truth for "current" — I check
 // against it in renderChangelog so I don't need to maintain a separate "current" flag.
 const CHANGELOG = [
+  {
+    version: 'v1.24.0',
+    date: 'June 2026',
+    headline: 'Data-safety overhaul, offline + accessibility upgrades, and a batch of fixes',
+    items: [
+      { tag:'new', text:'<b>Your data is far harder to lose.</b> If a save ever fails (e.g. storage full), you now get a clear banner with one-tap backup instead of silent data loss. A rolling auto-backup is written after every finished session, and if the main save ever becomes unreadable the app recovers from that backup instead of starting blank.' },
+      { tag:'new', text:'<b>Undo for body, food and sleep deletions.</b> Deleting a day\'s weight, a food log or a sleep entry now goes through the 24-hour recycle bin with an Undo toast &mdash; the same safety net sessions already had.' },
+      { tag:'improved', text:'<b>Safer imports.</b> Replacing all data now asks for confirmation, refuses files that aren\'t real backups, and saves a safety copy first. A bad paste can no longer wipe your history.' },
+      { tag:'fixed', text:'<b>Per-exercise ceilings and notes no longer vanish on reload</b> &mdash; they were saved and exported but never read back in. They now persist correctly.' },
+      { tag:'fixed', text:'<b>Body-tab averages are correct during British Summer Time.</b> Several date windows were calculated in UTC, shifting them a day for ~half the year; they now use your local calendar.' },
+      { tag:'fixed', text:'<b>Squash ties are no longer counted as losses</b>, and a typed rest time like "120" (no unit) is now read as seconds instead of falling back to 90s.' },
+      { tag:'improved', text:'<b>Better offline + updates.</b> The app shell is precached so it opens offline even on a fresh install, and a new version is now picked up on the next open rather than the one after.' },
+      { tag:'improved', text:'<b>Accessibility.</b> Dialogs now trap focus, close on Escape and return focus on exit; toasts and the rest-timer announce to screen readers; and low-contrast tertiary text was darkened to meet WCAG AA. Conditioning timers now keep beeping when the app is backgrounded.' }
+    ]
+  },
   {
     version: 'v1.23.87',
     date: 'May 2026',
@@ -18479,9 +18867,9 @@ let _currentBodyReviewPeriod = 30;
 function buildBodyReport(periodDays) {
   const days = periodDays || 30;
   const today = todayISO();
-  const start = (() => { const d = new Date(); d.setDate(d.getDate() - (days - 1)); return d.toISOString().slice(0,10); })();
-  const prevStart = (() => { const d = new Date(); d.setDate(d.getDate() - (days * 2 - 1)); return d.toISOString().slice(0,10); })();
-  const prevEnd = (() => { const d = new Date(); d.setDate(d.getDate() - days); return d.toISOString().slice(0,10); })();
+  const start = _bodyIsoBack(today, days - 1);          // Q5: local calendar (was UTC — BST off-by-one)
+  const prevStart = _bodyIsoBack(today, days * 2 - 1);
+  const prevEnd = _bodyIsoBack(today, days);
 
   const body = state.body || { entries:[], goal:{}, food:{ entries:[], tracked:[] } };
   const food = body.food || { entries:[], tracked:['calories','protein'] };
@@ -18509,22 +18897,14 @@ function buildBodyReport(periodDays) {
   const macrosInPrev = dailyMacrosArr.filter(e => e.date >= prevStart && e.date <= prevEnd);
 
   // Sessions logged in period (for training consistency)
-  const sessions = (state.sessions || []).filter(s => {
-    const d = new Date(s.startTime || s.endTime || 0).toISOString().slice(0,10);
-    return d >= start && d <= today;
-  });
-  const sessionsPrev = (state.sessions || []).filter(s => {
-    const d = new Date(s.startTime || s.endTime || 0).toISOString().slice(0,10);
-    return d >= prevStart && d <= prevEnd;
-  });
-  const sessionDates = new Set(sessions.map(s => new Date(s.startTime || s.endTime || 0).toISOString().slice(0,10)));
+  const sessDate = s => s.date || _localISO(new Date(s.startTime || s.endTime || 0));  // Q5: local
+  const sessions = (state.sessions || []).filter(s => { const d = sessDate(s); return d >= start && d <= today; });
+  const sessionsPrev = (state.sessions || []).filter(s => { const d = sessDate(s); return d >= prevStart && d <= prevEnd; });
+  const sessionDates = new Set(sessions.map(sessDate));
 
   // Build day array for the period (every day in range, in order)
   const dayList = [];
-  for (let i = 0; i < days; i++) {
-    const d = new Date(); d.setDate(d.getDate() - (days - 1 - i));
-    dayList.push(d.toISOString().slice(0,10));
-  }
+  for (let i = 0; i < days; i++) dayList.push(_bodyIsoBack(today, days - 1 - i));  // Q5: local calendar
 
   // Stats helpers
   const avg = arr => arr.length ? arr.reduce((a,b) => a+b, 0) / arr.length : null;
@@ -20914,6 +21294,11 @@ function renderSettings() {
   body.innerHTML = '<h3 class="modal-title">Profile &amp; gym</h3>'+
     '<div class="modal-sub">'+eqCount+' equipment types &middot; '+blockedCount+' blocked exercise'+(blockedCount===1?'':'s')+'</div>'+
     '<div class="settings-section">'+
+      '<div class="settings-title">Tools</div>'+
+      '<div class="settings-desc">The plate calculator, available any time &mdash; no active session needed.</div>'+
+      '<button class="btn btn-ghost btn-sm" id="tools-plate-calc" type="button">Plate calculator</button>'+
+    '</div>'+
+    '<div class="settings-section">'+
       '<div class="settings-title">Goal</div>'+
       '<div class="settings-desc">Shapes the sets, reps, and rest your plans use.</div>'+
       '<div class="opt-grid-3" id="goal-grid">'+
@@ -21018,7 +21403,7 @@ function renderSettings() {
           '<button class="btn btn-ghost btn-sm" id="data-import-cancel">Cancel</button>'+
           '<button class="btn btn-primary btn-sm" id="data-import-apply">Import</button>'+
         '</div>'+
-        '<div class="settings-desc" style="margin-top:8px;"><b>Merge:</b> adds sessions and entries without duplicates. <b>Replace:</b> wipes existing data first. Your current data is always exported as a safety backup to clipboard before replace.</div>'+
+        '<div class="settings-desc" style="margin-top:8px;"><b>Merge:</b> adds sessions and entries without duplicates. <b>Replace:</b> wipes existing data first &mdash; it asks you to confirm and saves a safety backup of your current data before overwriting.</div>'+
       '</div>'+
     '</div>'+
     '<div class="settings-section">'+
@@ -21662,6 +22047,8 @@ function renderSettings() {
       toast('Download started.');
     } catch(e) { toast('Download failed. Use Copy backup instead.'); }
   };
+  const toolsPlateBtn = document.getElementById('tools-plate-calc');
+  if (toolsPlateBtn) toolsPlateBtn.onclick = () => { if (typeof closeSettings === 'function') closeSettings(); openPlateCalc(); };
   if (importOpenBtn) importOpenBtn.onclick = () => {
     const panel = document.getElementById('data-import-panel');
     const ta = document.getElementById('data-import-text');
@@ -21674,6 +22061,11 @@ function renderSettings() {
     const merge = document.getElementById('data-import-merge').checked;
     const raw = (ta && ta.value || '').trim();
     if (!raw) { toast('Paste a backup first.'); return; }
+    if (!merge) {
+      // C5: explicit confirm before a destructive Replace.
+      const localN = (state.sessions||[]).length;
+      if (!confirm('REPLACE all current data with this backup?\n\nYour ' + localN + ' local session' + (localN===1?'':'s') + ' (and body/food/sleep logs) will be overwritten. A safety copy is saved first, but this cannot be undone from within the app.')) return;
+    }
     const result = importData(raw, { merge });
     if (!result.ok) { toast(result.error || 'Import failed.'); return; }
     renderSettings();
@@ -21700,13 +22092,31 @@ function renderRecycleBinList() {
     return d + ' day' + (d===1?'':'s') + ' ago';
   };
   return bin.map(entry => {
-    const item = entry.item || {};
+    const ageStr = fmtAgo(Date.now() - entry.deletedAt);
+    const rawItem = entry.item || {};
+    // C3: body / food / sleep soft-deletes render with a simple date-based label.
+    if (entry.kind === 'body' || entry.kind === 'food' || entry.kind === 'sleep') {
+      const items = Array.isArray(rawItem) ? rawItem : [rawItem];
+      const kindName = { body:'Body log', food:'Food log', sleep:'Sleep log' }[entry.kind];
+      const dates = [...new Set(items.map(it => it && it.date).filter(Boolean))];
+      const dateStr = dates.length ? (dates.length === 1 ? fmtHeaderDate(dates[0]) : dates.length + ' days') : '';
+      return '<div class="recycle-row" data-bin-id="'+entry.id+'">'+
+        '<div class="recycle-row-main">'+
+          '<div class="recycle-row-head"><span class="recycle-row-name">'+escapeHtml(kindName)+'</span><span class="recycle-tag">'+entry.kind+'</span></div>'+
+          '<div class="recycle-row-meta">'+(dateStr ? escapeHtml(dateStr)+' &middot; ' : '')+'deleted '+ageStr+'</div>'+
+        '</div>'+
+        '<div class="recycle-row-actions">'+
+          '<button class="btn btn-sm btn-primary" data-recycle-restore="'+entry.id+'">Restore</button>'+
+          '<button class="x-btn" data-recycle-purge="'+entry.id+'" title="Permanently delete" aria-label="Permanently delete"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></button>'+
+        '</div>'+
+      '</div>';
+    }
+    const item = rawItem;
     const isActive = entry.kind === 'active';
     const sessionName = item.name || (isActive ? 'Unfinished session' : 'Session');
     const trainedDate = item.date ? fmtHeaderDate(item.date) : (item.startTime ? fmtHeaderDate(new Date(item.startTime).toISOString().slice(0,10)) : '');
     const exCount = (item.exercises || []).length;
     const setCount = (item.exercises || []).reduce((a, e) => a + (e.sets || []).length, 0);
-    const ageStr = fmtAgo(Date.now() - entry.deletedAt);
     const tag = isActive ? '<span class="recycle-tag recycle-tag-active">In-progress</span>' : '';
     return '<div class="recycle-row" data-bin-id="'+entry.id+'">'+
       '<div class="recycle-row-main">'+
@@ -23608,10 +24018,14 @@ function _bodyPeriodMacroAgg(foodEntries, macroId, startISO, endISO) {
   const sum = vals.reduce((a,b) => a+b, 0);
   return { avg: sum / vals.length, sum, count: vals.length };
 }
-// ISO date N days before another ISO date
+// Local-calendar ISO from a Date. NOT toISOString() — that's UTC and returns the WRONG day for
+// positive-offset timezones (e.g. UK during BST, ~half the year), shifting Body/food window
+// boundaries by a day since stored entry dates are local (todayISO). (Q5, v1.24.0)
+function _localISO(d) { return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
+// ISO date N days before another ISO date (local calendar)
 function _bodyIsoBack(iso, n) {
   const d = new Date(iso + 'T00:00:00'); d.setDate(d.getDate() - n);
-  return d.toISOString().slice(0,10);
+  return _localISO(d);
 }
 function _bodyDeltaCls(delta, inverted) {
   // inverted = true for metrics where down-is-good (weight during cut, BF)
@@ -23791,7 +24205,7 @@ function renderBodyObservations() {
   const today = todayISO();
   const entries = state.body.entries || [];
   const food = state.body.food || { tracked:[], entries:[] };
-  const back = n => { const d = new Date(today+'T00:00:00'); d.setDate(d.getDate()-n); return d.toISOString().slice(0,10); };
+  const back = n => { const d = new Date(today+'T00:00:00'); d.setDate(d.getDate()-n); return _localISO(d); };  // Q5: local, not UTC
   const wk0 = back(6), mo0 = back(29);
   const avg = arr => arr.length ? arr.reduce((a,b)=>a+b,0)/arr.length : null;
   const obs = [];
@@ -23989,12 +24403,16 @@ function openBodyEntryEdit(dateISO) {
     toast('Updated '+fmtDate(dateISO)+'.');
   };
   document.getElementById('edit-body-delete').onclick = () => {
-    if (!confirm('Delete all logged values for '+fmtDate(dateISO)+'?')) return;
+    // C3: soft-delete with Undo (was a bare confirm() that hard-wiped weight + body-fat + steps
+    // for the day with no recovery — could silently puncture a months-long trend on a misfire).
+    const removed = state.body.entries.filter(e => e.date === dateISO);
     state.body.entries = state.body.entries.filter(e => e.date !== dateISO);
-    save();
+    const binId = removed.length ? _recycleAdd(removed.length === 1 ? removed[0] : removed, 'body', 'Body log for ' + dateISO) : null;
+    if (!binId) save();
     closeTemplateModal();
     renderBody();
-    toast('Deleted '+fmtDate(dateISO)+'.');
+    if (binId && typeof recycleToastUndo === 'function') recycleToastUndo('Deleted ' + fmtDate(dateISO) + '.', binId);
+    else toast('Deleted ' + fmtDate(dateISO) + '.');
   };
   document.getElementById('tmpl-modal').classList.remove('hidden');
 }
@@ -24018,7 +24436,7 @@ function renderFoodCard() {
   const tracked = food.tracked && food.tracked.length ? food.tracked : ['calories', 'protein'];
   const trackedMacros = MACROS.filter(m => tracked.includes(m.id));
   const today = todayISO();
-  const yesterday = (() => { const d = new Date(); d.setDate(d.getDate()-1); return d.toISOString().slice(0,10); })();
+  const yesterday = _bodyIsoBack(today, 1);  // Q5: local calendar (was UTC — off-by-one in BST)
   const entries = food.entries.slice().sort((a,b) => {
     if (a.date !== b.date) return a.date.localeCompare(b.date);
     return (a.time || 0) - (b.time || 0);
@@ -24028,10 +24446,7 @@ function renderFoodCard() {
   const hasTodayEntries = entries.some(e => e.date === today);
   // 7-day average — sums each day's entries then averages across days that had ANY log
   const last7Dates = [];
-  for (let i = 0; i < 7; i++) {
-    const d = new Date(); d.setDate(d.getDate() - i);
-    last7Dates.push(d.toISOString().slice(0,10));
-  }
+  for (let i = 0; i < 7; i++) last7Dates.push(_bodyIsoBack(today, i));  // Q5: local calendar
   const datesWithEntries = last7Dates.filter(d => entries.some(e => e.date === d));
   const avgs = {};
   trackedMacros.forEach(m => {
@@ -24178,7 +24593,7 @@ function wireFoodCard(pane) {
     if (!anyFilled) { toast('Enter at least one macro value.'); return; }
     logFood(macros, dateISO);
     const today = todayISO();
-    const yesterday = (() => { const d = new Date(); d.setDate(d.getDate()-1); return d.toISOString().slice(0,10); })();
+    const yesterday = _bodyIsoBack(today, 1);  // Q5: local calendar
     const dateLabel = dateISO === today ? "today's total" : (dateISO === yesterday ? "yesterday's total" : fmtDate(dateISO)+"'s total");
     // Build a short summary of what was just added
     const added = MACROS.filter(m => macros[m.id] != null && macros[m.id] > 0)
@@ -24715,7 +25130,7 @@ function renderBody() {
     if (!dateISO || dateISO > todayISO()) dateISO = todayISO();
     logSteps(steps, dateISO);
     const today = todayISO();
-    const yesterday = (() => { const d = new Date(); d.setDate(d.getDate() - 1); return d.toISOString().slice(0,10); })();
+    const yesterday = _bodyIsoBack(today, 1);  // Q5: local calendar
     const dateLabel = dateISO === today
       ? 'today'
       : (dateISO === yesterday ? 'yesterday' : 'on '+fmtDate(dateISO));
@@ -24887,10 +25302,13 @@ function wireSleepHandlers(pane) {
   };
   pane.querySelectorAll('[data-del-sleep]').forEach(b => {
     b.onclick = () => {
-      if (!confirm('Delete this sleep entry?')) return;
       const d = b.dataset.delSleep;
+      const removed = (state.body.sleep||[]).filter(s => s.date === d);   // C3: capture for undo
       state.body.sleep = (state.body.sleep||[]).filter(s => s.date !== d);
-      save(); renderBody();
+      const binId = removed.length ? _recycleAdd(removed.length === 1 ? removed[0] : removed, 'sleep', 'Sleep log') : null;
+      if (!binId) save();
+      renderBody();
+      if (binId && typeof recycleToastUndo === 'function') recycleToastUndo('Sleep entry deleted.', binId);
     };
   });
 }
@@ -25118,7 +25536,13 @@ function switchTab(name) {
   // Persist last-active tab so users return to where they left off across app reopens.
   // Skipping this for first-load defaults (handled at init time which reads this back).
   try { localStorage.setItem(LAST_TAB, name); } catch(e){}
-  document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.dataset.tab === name));
+  document.querySelectorAll('.tab').forEach(t => {
+    const sel = t.dataset.tab === name;
+    t.classList.toggle('active', sel);
+    // A11y: expose the selected tab programmatically (was colour-only). aria-current is the
+    // low-risk choice vs a full (and easy-to-get-wrong) tablist/tabpanel contract.
+    if (sel) t.setAttribute('aria-current', 'page'); else t.removeAttribute('aria-current');
+  });
   ['today','plan','progress','body','history','library'].forEach(n => {
     const el = document.getElementById('pane-'+n);
     if (el) el.classList.toggle('hidden', n !== name);
@@ -25167,8 +25591,15 @@ function updateThemeIcon() {
 let timerState = { active:false, endTime:0, paused:false, pausedRemaining:0, total:0, exerciseName:'', interval:null, doneFired:false };
 function parseRestSeconds(s) {
   if (!s) return 90;
-  const m = String(s).match(/(\d+)(?:\s*-\s*(\d+))?\s*(sec|s\b|min|m\b)/i);
-  if (!m) return 90;
+  const str = String(s).trim();
+  const m = str.match(/(\d+)(?:\s*-\s*(\d+))?\s*(sec|s\b|min|m\b)/i);
+  if (!m) {
+    // Q6: a bare number (e.g. "120" or "90-120") has no unit — interpret it as seconds rather
+    // than silently falling back to the 90s default.
+    const n = str.match(/^(\d+)(?:\s*-\s*(\d+))?$/);
+    if (n) { const lo = +n[1], hi = n[2] ? +n[2] : lo; return Math.round((lo + hi) / 2); }
+    return 90;
+  }
   const lo = +m[1], hi = m[2] ? +m[2] : lo;
   const avg = Math.round((lo + hi) / 2);
   return /^m/i.test(m[3]) ? avg * 60 : avg;
@@ -25294,6 +25725,7 @@ function tickTimer() {
     vibrateRestEnd();
     flashScreenForRestEnd();
     fireRestEndNotification(timerState.exerciseName);
+    srAnnounce(timerState.exerciseName ? ('Rest complete. Next set: ' + timerState.exerciseName) : 'Rest complete. Time for the next set.');
     const el = document.getElementById('rest-timer');
     el.classList.add('done');
     el.classList.remove('warning');
@@ -25831,6 +26263,9 @@ function startCondTimer(mode, exId, setIdx) {
   document.getElementById('cond-overlay-exname').textContent = ex.name;
   // Acquire wake lock during conditioning so the screen doesn't sleep mid-AMRAP
   refreshWakeLock();
+  // S5: keep JS alive while the conditioning timer runs (parity with the rest timer) so phase
+  // beeps still fire when the app is backgrounded on mobile.
+  startSilentKeepalive();
   // 3-2-1 countdown then go
   let cdN = 3;
   const phaseEl = document.getElementById('cond-overlay-phase');
@@ -25842,6 +26277,9 @@ function startCondTimer(mode, exId, setIdx) {
   playCondBeep('countdown');
   vibrate(80);
   const cdInt = setInterval(() => {
+    // S5: if the timer was ended during the 3-2-1 countdown, bail — otherwise this interval
+    // would clear itself but then RE-LAUNCH the (supposedly ended) timer.
+    if (!condTimerState.active) { clearInterval(cdInt); return; }
     cdN--;
     if (cdN > 0) {
       timeEl.textContent = String(cdN);
@@ -25850,6 +26288,7 @@ function startCondTimer(mode, exId, setIdx) {
       vibrate(80);
     } else {
       clearInterval(cdInt);
+      condTimerState.countdownInterval = null;
       // Reset start time so the actual timer begins after countdown
       condTimerState.startTime = Date.now();
       playCondBeep('go');
@@ -25858,6 +26297,7 @@ function startCondTimer(mode, exId, setIdx) {
       tickCondTimer(); // immediate render
     }
   }, 1000);
+  condTimerState.countdownInterval = cdInt;  // S5: track so endCondTimer can cancel a live countdown
   // Wire overlay button handlers
   document.getElementById('cond-overlay-close').onclick = () => endCondTimer(false);
   document.getElementById('cond-overlay-pause').onclick = pauseCondTimer;
@@ -26028,6 +26468,8 @@ function skipCondPhase() {
 function endCondTimer(saveResult) {
   if (!condTimerState.active) return;
   if (condTimerState.interval) clearInterval(condTimerState.interval);
+  if (condTimerState.countdownInterval) clearInterval(condTimerState.countdownInterval);  // S5: kill an in-flight 3-2-1
+  stopSilentKeepalive();  // S5: release the background keepalive
   const ex = state.active && state.active.exercises.find(e => e.id === condTimerState.exId);
   const set = ex && ex.sets[condTimerState.setIdx];
   if (saveResult && set) {
@@ -26264,6 +26706,19 @@ updateSessionIndicators();
 refreshWakeLock();
 // Auto-prune the recycle bin (drop entries >24h old) at boot. (v1.23.50)
 _recyclePrune();
+// C4: ask the browser to persist storage so the OS is less likely to evict the user's data
+// (matters most for installed iOS PWAs). Best-effort, non-blocking.
+try {
+  if (navigator.storage && navigator.storage.persist && navigator.storage.persisted) {
+    navigator.storage.persisted().then(p => { if (!p) navigator.storage.persist().catch(() => {}); }).catch(() => {});
+  }
+} catch(e) {}
+// C4: gentle reminder to back up if it's been a while and there's data at risk.
+_maybeShowBackupNudge();
+// S7: wire up global modal focus management + Escape-to-close.
+_setupModalA11y();
+// First-run orientation (new users only).
+_maybeShowFirstRunCard();
 // Stamp the version constant into the footer so releases only need to update APP_VERSION
 (function(){ const el = document.querySelector('.app-version-num'); if (el) el.textContent = APP_VERSION; })();
 
