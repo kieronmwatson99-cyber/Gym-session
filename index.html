@@ -7467,7 +7467,7 @@ const LAST_TAB = 'wt_last_tab';
 // App version — shown in the footer + reported in bug emails. Bump per release.
 // IMPORTANT: keep this in lock-step with CACHE_NAME in sw.js ('sessions-' + this version).
 // If they drift, the service worker won't change bytes on deploy and the update banner never fires.
-const APP_VERSION = 'v1.24.1';
+const APP_VERSION = 'v1.24.2';
 const SCHEMA_VERSION = 1;                         // S4: persisted-data schema version for the migration ladder
 // C1/C2 persistence guards. Declared before loadState() runs (line below) — _saveBlocked
 // gates save() so a corrupt-but-recoverable primary blob is never overwritten with empty data.
@@ -7834,31 +7834,10 @@ function _writeAutoBackup() {
 function _markBackedUp() {
   try { state._lastBackupAt = Date.now(); } catch(e) {}
 }
-// C4: a soft, dismissible reminder to export a backup when there's data at risk and it has
-// been a while. Throttled so it never nags more than every few days.
-function _maybeShowBackupNudge() {
-  try {
-    if ((state.sessions||[]).length < 5) return;
-    const now = Date.now();
-    const last = state._lastBackupAt || 0;
-    const lastShown = state._backupNudgeShownAt || 0;
-    if ((now - last) < 14*24*60*60*1000) return;     // backed up recently enough
-    if ((now - lastShown) < 3*24*60*60*1000) return; // don't nag more than every ~3 days
-    state._backupNudgeShownAt = now; save();
-    let b = document.getElementById('backup-nudge-banner');
-    if (!b) {
-      b = document.createElement('div');
-      b.id = 'backup-nudge-banner';
-      b.className = 'storage-error-banner info';
-      b.setAttribute('role', 'status');
-      b.innerHTML = '<span class="seb-msg">Your data lives only on this device. Back it up so you don\'t lose it.</span><button type="button" class="seb-act">Back up now</button><button type="button" class="seb-dismiss" aria-label="Dismiss">×</button>';
-      (document.body || document.documentElement).appendChild(b);
-      b.querySelector('.seb-act').addEventListener('click', () => { if (_emergencyBackup()) { toast('Backup saved.'); b.classList.remove('show'); } else toast('Backup failed — copy from Settings.'); });
-      b.querySelector('.seb-dismiss').addEventListener('click', () => b.classList.remove('show'));
-    }
-    setTimeout(() => b.classList.add('show'), 1200);
-  } catch(e) {}
-}
+// (Removed in v1.24.2) The recurring "back up your data" nudge on open was dropped — it was
+// nagging on every launch, and the local-only data model is already covered by the one-time
+// first-run card, while real save failures still surface their own banner. Backup remains a
+// one-tap action in Settings.
 // One-time orientation card for brand-new users — explains the local-only data model (so they
 // back up) and where the main areas live. Gated by a localStorage flag; only shown when there
 // is no data yet. (v1.24.0)
@@ -12939,6 +12918,14 @@ function renderHistory() {
 // Order: newest first. APP_VERSION constant is the source of truth for "current" — I check
 // against it in renderChangelog so I don't need to maintain a separate "current" flag.
 const CHANGELOG = [
+  {
+    version: 'v1.24.2',
+    date: 'June 2026',
+    headline: 'No more backup reminder on every launch',
+    items: [
+      { tag:'fixed', text:'<b>Removed the recurring &ldquo;back up your data&rdquo; banner</b> that could appear every time you opened the app. Backup is still one tap in Settings, and you\'ll still get a clear warning if a save ever actually fails.' }
+    ]
+  },
   {
     version: 'v1.24.1',
     date: 'June 2026',
@@ -26731,8 +26718,6 @@ try {
     navigator.storage.persisted().then(p => { if (!p) navigator.storage.persist().catch(() => {}); }).catch(() => {});
   }
 } catch(e) {}
-// C4: gentle reminder to back up if it's been a while and there's data at risk.
-_maybeShowBackupNudge();
 // S7: wire up global modal focus management + Escape-to-close.
 _setupModalA11y();
 // First-run orientation (new users only).
