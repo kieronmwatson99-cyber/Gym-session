@@ -2139,7 +2139,7 @@ body.ss-select-mode .exercise-actions{pointer-events:none;opacity:0.35}
 .exercise.warn{border-left:3px solid var(--rose)}
 .exercise-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;gap:10px;flex-wrap:wrap}
 .exercise-title{display:flex;align-items:center;gap:8px;min-width:0;flex-wrap:wrap;flex:1 1 auto}
-.exercise-actions{display:flex;gap:2px;align-items:center;flex-shrink:0;flex-wrap:nowrap;margin-left:auto}
+.exercise-actions{display:flex;gap:2px;align-items:center;flex-shrink:0;flex-wrap:wrap;justify-content:flex-end;margin-left:auto;max-width:100%}
 /* On narrow screens, if title + actions can't both fit, let actions wrap to a new row.
    Title keeps its priority; action buttons always stay visible. */
 @media (max-width:520px){
@@ -6864,6 +6864,15 @@ function isBodyweight(ex) {
   const lib = libByName && libByName[(ex.name||'').toLowerCase()];
   return !!(lib && lib.bw);
 }
+// True only for exercises loaded on a barbell — the one case where "plates per side of the bar"
+// applies, so the plate calculator only appears on these. Checks the exercise's own eq (custom
+// exercises that carry it) then falls back to the library entry by name. Unknown/custom = false.
+function usesBarbell(ex) {
+  if (!ex) return false;
+  let eq = Array.isArray(ex.eq) ? ex.eq : null;
+  if (!eq) { const lib = libByName && libByName[(ex.name||'').toLowerCase()]; eq = (lib && Array.isArray(lib.eq)) ? lib.eq : null; }
+  return !!eq && eq.indexOf('barbell') !== -1;
+}
 // Conditioning mode helpers — AMRAP / EMOM / Interval. Each has its own logging schema.
 // AMRAP: fixed time cap, log "rounds + extra reps" → set = { rounds, reps, capSec, hr, cal }
 // EMOM:  N minutes, log how many you completed → set = { minutesDone, totalMinutes, hr, cal }
@@ -7458,7 +7467,7 @@ const LAST_TAB = 'wt_last_tab';
 // App version — shown in the footer + reported in bug emails. Bump per release.
 // IMPORTANT: keep this in lock-step with CACHE_NAME in sw.js ('sessions-' + this version).
 // If they drift, the service worker won't change bytes on deploy and the update banner never fires.
-const APP_VERSION = 'v1.24.0';
+const APP_VERSION = 'v1.24.1';
 const SCHEMA_VERSION = 1;                         // S4: persisted-data schema version for the migration ladder
 // C1/C2 persistence guards. Declared before loadState() runs (line below) — _saveBlocked
 // gates save() so a corrupt-but-recoverable primary blob is never overwritten with empty data.
@@ -9386,7 +9395,7 @@ function renderExercises() {
       })()+
       (showSwap ? '<button class="x-btn swap" data-action="alts" title="Swap exercise" aria-label="Swap"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg></button>' : '')+
       // Lift-only utilities: plate calculator, warmup ramp, personal note (v1.23.86)
-      ((!cardio && !condMode && !isSport(e)) ? '<button class="x-btn" data-action="plate-calc" title="Plate calculator" aria-label="Plate calculator"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3"/></svg></button>'+
+      ((!cardio && !condMode && !isSport(e)) ? (usesBarbell(e) ? '<button class="x-btn" data-action="plate-calc" title="Plate calculator" aria-label="Plate calculator"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3"/></svg></button>' : '')+
         '<button class="x-btn" data-action="warmup-gen" title="Warmup ramp" aria-label="Warmup ramp"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 18h4l3-12 4 18 3-9h4"/></svg></button>'+
         '<button class="x-btn'+(getExerciseNote(e.name)?' has-note':'')+'" data-action="ex-note" title="Note" aria-label="Note"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.12 2.12 0 0 1 3 3L12 15l-4 1 1-4z"/></svg></button>' : '')+
       '<button class="x-btn" data-action="remove-ex" aria-label="Remove"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6L6 18M6 6l12 12"/></svg></button></div></div>'+
@@ -12930,6 +12939,15 @@ function renderHistory() {
 // Order: newest first. APP_VERSION constant is the source of truth for "current" — I check
 // against it in renderChangelog so I don't need to maintain a separate "current" flag.
 const CHANGELOG = [
+  {
+    version: 'v1.24.1',
+    date: 'June 2026',
+    headline: 'Plate calculator tidied up + crowded action rows no longer hide buttons',
+    items: [
+      { tag:'fixed', text:'<b>The plate calculator now only appears on barbell exercises</b> &mdash; it was showing on dumbbell, machine, cable and bodyweight moves where loading plates per side of a bar makes no sense.' },
+      { tag:'fixed', text:'<b>The exercise action buttons (rest, swap, etc.) no longer get pushed off-screen</b> on a card with lots of controls &mdash; e.g. the rest-timer button on the last exercise of a superset. The row now wraps neatly instead of overflowing.' }
+    ]
+  },
   {
     version: 'v1.24.0',
     date: 'June 2026',

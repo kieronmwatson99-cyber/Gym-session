@@ -2,7 +2,7 @@
 // IMPORTANT: CACHE_NAME must stay 'sessions-' + APP_VERSION (see index.html). A deploy must
 // change these bytes, otherwise the browser sees no update and the in-app "update available"
 // banner never fires. Bump both together every release.
-const CACHE_NAME = 'sessions-v1.24.0';
+const CACHE_NAME = 'sessions-v1.24.1';
 
 // S1: app shell precached at install so the app opens offline even on the FIRST launch after
 // install. The previous SW cached nothing at install and relied on an earlier online fetch,
